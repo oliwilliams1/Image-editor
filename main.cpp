@@ -1,6 +1,7 @@
 #include "app.h"
 
-int main() {
+int main() 
+{
 	App app = App();
 	app.Mainloop();
 	return 0;
