@@ -46,6 +46,8 @@ App::App()
 	windowWidth = smallWindowWidth;
 	windowHeight = smallWindowHeight;
 
+	selectedImageIndex = -1;
+
 	InitWindow();
 	InitImGui();
 
@@ -218,6 +220,33 @@ void App::RenderUI()
 	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 	ImGui::SetWindowSize(ImVec2(windowWidth - 320, windowHeight - 256 - 40));
 	ImGui::SetWindowPos(ImVec2(0, 40));
+
+	if (selectedImageIndex != -1)
+	{
+		int imageWidth = images[selectedImageIndex].width;
+		int imageHeight = images[selectedImageIndex].height;
+		float aspectRatioImage = (float)imageWidth / (float)imageHeight;
+
+		int viewportWidth = windowWidth - 320;
+		int viewportHeight = windowHeight - 256 - 60;
+		float aspectRatioViewport = (float)viewportWidth / (float)(viewportHeight);
+
+		int x, y;
+		if (aspectRatioImage > aspectRatioViewport) {
+			x = viewportWidth;
+			y = viewportWidth / aspectRatioImage;
+		}
+		else {
+			x = (viewportHeight) * aspectRatioImage;
+			y = viewportHeight;
+		}
+
+		int offset = (viewportWidth - x) / 2;
+
+		ImGui::SameLine(offset);
+		ImGui::Image((ImTextureID)(intptr_t)images[selectedImageIndex].textureID, ImVec2(x, y));
+	}
+
 	ImGui::End();
 
 	ImGui::Begin("Image Settings", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
@@ -241,6 +270,10 @@ void App::RenderUI()
 		int desiredWidth = desiredHeight * aspectRatio;
 
 		ImGui::Image((ImTextureID)(intptr_t)images[i].textureID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+		if (ImGui::IsItemClicked()) {
+			selectedImageIndex = i;
+		}
 
 		if (i != images.size() - 1) {
 			ImGui::SameLine();

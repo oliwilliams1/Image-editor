@@ -28,6 +28,8 @@ private:
 	std::vector<Image> images;
 	int wishImagesAmnt;
 
+	int selectedImageIndex;
+
 	bool fileWindowOpen;
 	int screenSizeX, screenSizeY;
 	int windowWidth, windowHeight;
