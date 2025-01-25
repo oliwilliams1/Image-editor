@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-#include <thread>
-#include <mutex>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -26,7 +24,7 @@ public:
 
 private:
 	GLFWwindow* window;
-	std::mutex imageMutex;
+	std::vector<std::string> imagePathQueue;
 	std::vector<Image> images;
 	int wishImagesAmnt;
 

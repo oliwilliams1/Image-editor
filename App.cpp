@@ -80,6 +80,9 @@ void App::InitWindow()
 	int posX = (mode->width - windowWidth) / 2;
 	int posY = (mode->height - windowHeight) / 2;
 
+	screenSizeX = mode->width;
+	screenSizeY = mode->height;
+
 	// Set the window position to the center
 	glfwSetWindowPos(window, posX, posY);
 
@@ -118,6 +121,13 @@ void App::Mainloop()
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		if (imagePathQueue.size() != 0)
+		{
+			images.push_back(LoadImage(imagePathQueue.front()));
+			std::cout << "Loaded image: " << imagePathQueue.front() << std::endl;
+			imagePathQueue.erase(imagePathQueue.begin());
+		}
+
 		RenderUI();
 
 		glfwSwapBuffers(window);
@@ -127,7 +137,6 @@ void App::Mainloop()
 void App::OpenFolderContents(const std::string& folderPath) 
 {
 	std::vector<std::string> supportedFileTypes = { ".png", ".jpg", "jpeg", ".bmp" };
-	std::vector<std::string> files;
 
 	std::filesystem::path path(folderPath);
 
@@ -140,19 +149,12 @@ void App::OpenFolderContents(const std::string& folderPath)
 			if (std::find(supportedFileTypes.begin(), supportedFileTypes.end(), extension) != supportedFileTypes.end()) {
 				
 				std::filesystem::path filePath = entry.path();
-				files.push_back(filePath.string());
+				imagePathQueue.push_back(filePath.string());
 			}
 		}
 	}
 
-	std::lock_guard<std::mutex> lock(imageMutex);
-	wishImagesAmnt = files.size();
-
-	for (const auto& filePath: files) 
-	{
-		images.push_back(LoadImage(filePath));
-		std::cout << "Loaded image: " << filePath << std::endl;
-	}
+	wishImagesAmnt = imagePathQueue.size();
 }
 
 void App::RenderUI()
@@ -229,10 +231,23 @@ void App::RenderUI()
 
 	ImGui::Text("Gallery");
 
-	for (int i = 0; i < images.size(); i++) 
+	ImGui::BeginChild("Images", ImVec2(0, 256 - 56), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+	int desiredHeight = 256 - 56 - 24 - ImGui::GetStyle().WindowPadding.y;
+
+	for (int i = 0; i < images.size(); i++)
 	{
-		ImGui::Image((ImTextureID)(intptr_t)images[i].textureID, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+		float aspectRatio = (float)images[i].width / (float)images[i].height;
+		int desiredWidth = desiredHeight * aspectRatio;
+
+		ImGui::Image((ImTextureID)(intptr_t)images[i].textureID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+		if (i != images.size() - 1) {
+			ImGui::SameLine();
+		}
 	}
+
+	ImGui::EndChild();
 
 	if (images.size() != wishImagesAmnt)
 	{
