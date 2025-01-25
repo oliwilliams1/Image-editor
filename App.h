@@ -13,6 +13,7 @@
 #include <imgui_impl_opengl3.h>
 #include <nfd.h>
 
+#include "Editor.h"
 #include "utils.h"
 
 class App
@@ -23,6 +24,8 @@ public:
 	~App();
 
 private:
+	Editor editor;
+
 	GLFWwindow* window;
 	std::vector<std::string> imagePathQueue;
 	std::vector<Image> images;

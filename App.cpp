@@ -52,6 +52,8 @@ App::App()
 	InitImGui();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	editor.Initialize();
 }
 
 void App::InitWindow() 
@@ -273,6 +275,7 @@ void App::RenderUI()
 
 		if (ImGui::IsItemClicked()) {
 			selectedImageIndex = i;
+			editor.SetImage(images[i]);
 		}
 
 		if (i != images.size() - 1) {
