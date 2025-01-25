@@ -1,20 +1,26 @@
 ﻿#include "App.h"
 #include "utils.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT) {
-		if (action == GLFW_PRESS) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT) 
+	{
+		if (action == GLFW_PRESS) 
+		{
 			dragging = true;
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			offsetX = xpos;
 			offsetY = ypos;
 		}
-		else if (action == GLFW_RELEASE) {
+		else if (action == GLFW_RELEASE) 
+		{
 			dragging = false;
 		}
 	}
@@ -122,6 +128,67 @@ void App::Mainloop()
 	}
 }
 
+void App::LoadImage(const std::string& filePath) 
+{
+	int width, height, channels;
+	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+
+	if (data == nullptr) 
+	{
+		std::cout << "STB failed to load image: " << filePath << std::endl;
+		exit(1);
+		return;
+	}
+
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(data);
+
+	images.push_back({ textureID, filePath, width, height, channels });
+}
+
+void App::OpenFolderContents(const std::string& folderPath) 
+{
+	std::vector<std::string> supportedFileTypes = { ".png", ".jpg", "jpeg", ".bmp" };
+	std::vector<std::string> files;
+
+	std::filesystem::path path(folderPath);
+
+	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+		if (entry.is_regular_file()) {
+			std::string fileName = entry.path().filename().string();
+			std::string extension = entry.path().extension().string();
+
+			// Check if the file type is supported
+			if (std::find(supportedFileTypes.begin(), supportedFileTypes.end(), extension) != supportedFileTypes.end()) {
+				
+				std::filesystem::path filePath = entry.path();
+				files.push_back(filePath.string());
+			}
+		}
+	}
+
+	std::lock_guard<std::mutex> lock(imageMutex);
+	wishImagesAmnt = files.size();
+
+	for (const auto& filePath: files) 
+	{
+		LoadImage(filePath);
+		std::cout << "Loaded image: " << filePath << std::endl;
+	}
+}
+
 void App::RenderUI()
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -190,10 +257,30 @@ void App::RenderUI()
 	ImGui::SetWindowPos(ImVec2(windowWidth - 320, 40));
 	ImGui::End();
 
-	ImGui::Begin("Photos", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+	ImGui::Begin("Gallery", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 	ImGui::SetWindowSize(ImVec2(windowWidth, 256));
 	ImGui::SetWindowPos(ImVec2(0, windowHeight - 256));
+
 	ImGui::Text("Gallery");
+
+	float progressBarHeight = 24.0f;
+
+	
+	if (images.size() != wishImagesAmnt)
+	{
+		std::string label = "Loading images (" + std::to_string(images.size()) + "/" + std::to_string(wishImagesAmnt) + ")";
+
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - progressBarHeight - ImGui::GetStyle().WindowPadding.y);
+
+		ImGui::ProgressBar((float)images.size() / (float)wishImagesAmnt, ImVec2(windowWidth - 12, progressBarHeight), label.c_str());
+	} 
+	else 
+	{
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 15 - ImGui::GetStyle().WindowPadding.y);
+
+		ImGui::Text("Loaded images %i", images.size());
+	}
+
 	ImGui::End();
 
 	if (fileWindowOpen) {
@@ -212,6 +299,10 @@ void App::RenderUI()
 			if (result == NFD_OKAY) 
 {
 				std::cout << "User selected folder: " << outPath << std::endl;
+
+				std::string folderPath = outPath;
+				std::thread openingImagesThread(&App::OpenFolderContents, this, folderPath);
+				openingImagesThread.detach();
 
 				NFD_FreePathU8(outPath);
 			}
@@ -235,6 +326,10 @@ void App::RenderUI()
 
 App::~App() 
 {
+	for (int i = 0; i < images.size(); i++)
+	{
+		glDeleteTextures(1, &images[i].textureID);
+	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
