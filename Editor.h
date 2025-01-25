@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <GL/glew.h>
+#include <imgui.h>
 #include "utils.h"
 #include "shader.h"
 
@@ -13,6 +14,8 @@ public:
 	void Initialize();
 	void SetImage(Image image);
 	void Render();
+	void RenderUI();
+
 	GLuint mainTexture;
 
 private:
@@ -20,6 +23,8 @@ private:
 	Shader* shader;
 	Image currentImage;
 
+	float colTempS, colTempT;
+	GLuint u_ColTempSLoc, u_ColTempTLoc;
 	GLuint u_InputImageLoc;
 	GLuint editorFBO, quadVAO, quadVBO;
 };

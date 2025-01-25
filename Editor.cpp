@@ -5,11 +5,20 @@ Editor::Editor() {};
 void Editor::Initialize() {
 	SetupQuad();
 
+	colTempS = 6500.0f;
+	colTempT = 6500.0f;
+
 	glGenFramebuffers(1, &editorFBO);
 
 	shader = new Shader("shaders/editor.vert", "shaders/editor.frag");
-
+	
 	u_InputImageLoc = glGetUniformLocation(shader->shaderProgram, "u_InputImage");
+	u_ColTempSLoc = glGetUniformLocation(shader->shaderProgram, "u_Ct_s");
+	u_ColTempTLoc = glGetUniformLocation(shader->shaderProgram, "u_Ct_t");
+
+	shader->use();
+	glUniform1f(u_ColTempSLoc, colTempS);
+	glUniform1f(u_ColTempTLoc, colTempT);
 }
 
 void Editor::SetupQuad() 
@@ -83,6 +92,13 @@ void Editor::Render()
 	glBindVertexArray(0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Editor::RenderUI()
+{
+	ImGui::Text("Colour temperature");
+	if (ImGui::DragFloat("Colour temp start", &colTempS, 10.0f, 2000.0f, 10000.0f)) glUniform1f(u_ColTempSLoc, colTempS);
+	if (ImGui::DragFloat("Colour temp target", &colTempT, 10.0f, 2000.0f, 10000.0f)) glUniform1f(u_ColTempTLoc, colTempT);
 }
 
 Editor::~Editor() 

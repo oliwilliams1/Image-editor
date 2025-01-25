@@ -223,7 +223,7 @@ void App::RenderUI()
 	ImGui::End();
 
 	ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-	ImGui::SetWindowSize(ImVec2(windowWidth - 320, windowHeight - 256 - 40));
+	ImGui::SetWindowSize(ImVec2(windowWidth - 500, windowHeight - 256 - 40));
 	ImGui::SetWindowPos(ImVec2(0, 40));
 
 	if (selectedImageIndex != -1)
@@ -232,7 +232,7 @@ void App::RenderUI()
 		int imageHeight = images[selectedImageIndex].height;
 		float aspectRatioImage = (float)imageWidth / (float)imageHeight;
 
-		int viewportWidth = windowWidth - 320;
+		int viewportWidth = windowWidth - 500;
 		int viewportHeight = windowHeight - 256 - 60;
 		float aspectRatioViewport = (float)viewportWidth / (float)(viewportHeight);
 
@@ -255,8 +255,9 @@ void App::RenderUI()
 	ImGui::End();
 
 	ImGui::Begin("Image Settings", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-	ImGui::SetWindowSize(ImVec2(320, windowHeight - 256 - 40));
-	ImGui::SetWindowPos(ImVec2(windowWidth - 320, 40));
+	ImGui::SetWindowSize(ImVec2(500, windowHeight - 256 - 40));
+	ImGui::SetWindowPos(ImVec2(windowWidth - 500, 40));
+	editor.RenderUI();
 	ImGui::End();
 
 	ImGui::Begin("Gallery", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
