@@ -7,6 +7,9 @@ void Editor::Initialize() {
 
 	glGenFramebuffers(1, &editorFBO);
 
+	shader = new Shader("shaders/editor.vert", "shaders/editor.frag");
+
+	u_InputImageLoc = glGetUniformLocation(shader->shaderProgram, "u_InputImage");
 }
 
 void Editor::SetupQuad() 
@@ -33,6 +36,7 @@ void Editor::SetupQuad()
 
 void Editor::SetImage(Image image)
 {
+	this->currentImage = image;
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
 
 	if (mainTexture != 0)
@@ -41,7 +45,6 @@ void Editor::SetImage(Image image)
 		mainTexture = 0;
 	}
 
-	glGenTextures(1, &mainTexture);
 	glGenTextures(1, &mainTexture);
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, image.width, image.height, 0, GL_RGBA, GL_FLOAT, nullptr);
@@ -56,6 +59,29 @@ void Editor::SetImage(Image image)
 	{
 		std::cerr << "Framebuffer is not complete!" << std::endl;
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Editor::Render() 
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
+	glViewport(0, 0, currentImage.width, currentImage.height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mainTexture);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, currentImage.textureID);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	shader->use();
+	glUniform1i(u_InputImageLoc, 1);
+
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

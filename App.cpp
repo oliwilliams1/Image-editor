@@ -122,15 +122,18 @@ void App::Mainloop()
 {
 	while (!glfwWindowShouldClose(window))
 	{
-		glfwPollEvents();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		if (imagePathQueue.size() != 0)
 		{
 			images.push_back(LoadImage(imagePathQueue.front()));
 			std::cout << "Loaded image: " << imagePathQueue.front() << std::endl;
 			imagePathQueue.erase(imagePathQueue.begin());
 		}
+
+		glfwPollEvents();
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if (selectedImageIndex != -1) editor.Render();
 
 		RenderUI();
 
@@ -246,7 +249,7 @@ void App::RenderUI()
 		int offset = (viewportWidth - x) / 2;
 
 		ImGui::SameLine(offset);
-		ImGui::Image((ImTextureID)(intptr_t)images[selectedImageIndex].textureID, ImVec2(x, y));
+		ImGui::Image((ImTextureID)(intptr_t)editor.mainTexture, ImVec2(x, y));
 	}
 
 	ImGui::End();

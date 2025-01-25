@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <GL/glew.h>
 
 struct Image
@@ -12,3 +13,5 @@ struct Image
 
 void SetupImGuiStyle();
 Image LoadImage(const std::string& filePath);
+bool ReadFile(const char* pFileName, std::string& outFile);
+void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
