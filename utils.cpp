@@ -1,6 +1,9 @@
 #include "utils.h"
 #include <imgui.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void SetupImGuiStyle() {
 	// Hazy Dark style by kaitabuchi314 from ImThemes
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -92,4 +95,44 @@ void SetupImGuiStyle() {
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF("Roboto-Black.ttf", 16.0f);
+}
+
+Image LoadImage(const std::string& filePath)
+{
+	int width, height, channels;
+	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+
+	if (data == nullptr)
+	{
+		std::cout << "STB failed to load image: " << filePath << std::endl;
+		exit(1);
+		return {};
+	}
+
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(data);
+
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		std::cout << "OpenGL Error: " << error << " for texture ID: " << textureID << std::endl;
+		glDeleteTextures(1, &textureID);
+		stbi_image_free(data);
+		return {};
+	}
+
+	Image image = { textureID, filePath, width, height, channels };
+	return image;
 }

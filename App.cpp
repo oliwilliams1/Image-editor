@@ -1,14 +1,10 @@
 ﻿#include "App.h"
-#include "utils.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
 
-void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) 
 	{
 		if (action == GLFW_PRESS) 
@@ -26,7 +22,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	}
 }
 
-void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 	if (dragging) {
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
@@ -49,9 +45,11 @@ App::App()
 	smallWindowHeight = 900;
 	windowWidth = smallWindowWidth;
 	windowHeight = smallWindowHeight;
+
 	InitWindow();
 	InitImGui();
-	SetupImGuiStyle();
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void App::InitWindow() 
@@ -82,9 +80,6 @@ void App::InitWindow()
 	int posX = (mode->width - windowWidth) / 2;
 	int posY = (mode->height - windowHeight) / 2;
 
-	screenSizeX = mode->width;
-	screenSizeY = mode->height;
-
 	// Set the window position to the center
 	glfwSetWindowPos(window, posX, posY);
 
@@ -113,6 +108,7 @@ void App::InitImGui()
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
+	SetupImGuiStyle();
 }
 
 void App::Mainloop()
@@ -120,42 +116,12 @@ void App::Mainloop()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		RenderUI();
 
 		glfwSwapBuffers(window);
 	}
-}
-
-void App::LoadImage(const std::string& filePath) 
-{
-	int width, height, channels;
-	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
-
-	if (data == nullptr) 
-	{
-		std::cout << "STB failed to load image: " << filePath << std::endl;
-		exit(1);
-		return;
-	}
-
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(data);
-
-	images.push_back({ textureID, filePath, width, height, channels });
 }
 
 void App::OpenFolderContents(const std::string& folderPath) 
@@ -184,7 +150,7 @@ void App::OpenFolderContents(const std::string& folderPath)
 
 	for (const auto& filePath: files) 
 	{
-		LoadImage(filePath);
+		images.push_back(LoadImage(filePath));
 		std::cout << "Loaded image: " << filePath << std::endl;
 	}
 }
@@ -263,11 +229,14 @@ void App::RenderUI()
 
 	ImGui::Text("Gallery");
 
-	float progressBarHeight = 24.0f;
+	for (int i = 0; i < images.size(); i++) 
+	{
+		ImGui::Image((ImTextureID)(intptr_t)images[i].textureID, ImVec2(64, 64), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
 
-	
 	if (images.size() != wishImagesAmnt)
 	{
+		float progressBarHeight = 24.0f;
 		std::string label = "Loading images (" + std::to_string(images.size()) + "/" + std::to_string(wishImagesAmnt) + ")";
 
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - progressBarHeight - ImGui::GetStyle().WindowPadding.y);
@@ -301,8 +270,7 @@ void App::RenderUI()
 				std::cout << "User selected folder: " << outPath << std::endl;
 
 				std::string folderPath = outPath;
-				std::thread openingImagesThread(&App::OpenFolderContents, this, folderPath);
-				openingImagesThread.detach();
+				OpenFolderContents(folderPath);
 
 				NFD_FreePathU8(outPath);
 			}
