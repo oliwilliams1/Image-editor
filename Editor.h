@@ -16,6 +16,7 @@ public:
 	void SetImage(std::shared_ptr<Image> imagePtr);
 	void Render();
 	void RenderUI();
+	void SaveImage();
 
 	GLuint mainTexture;
 

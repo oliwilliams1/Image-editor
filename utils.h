@@ -9,6 +9,11 @@
 
 struct ImageEditData
 {
+	glm::vec3 avgColour;
+	float p1 = 1.0f;
+	glm::vec3 AWB_ScalingFactors;
+	float p2 = 1.0f;
+
 	float gamma; // [0.2, 5.0]
 
 	float exposure; // [-5, 5] working ev
@@ -22,11 +27,6 @@ struct ImageEditData
 	float invert; // [0 or 1] switch
 
 	float u_ApplyAwb; // [0 or 1] switch
-	
-	glm::vec3 avgColour;
-	float p1 = 1.0f;
-	glm::vec3 AWB_ScalingFactors;
-	float p2 = 1.0f;
 
 	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
 		colTempS(6500.0f), colTempT(6500.0f), 

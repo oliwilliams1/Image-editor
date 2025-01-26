@@ -137,7 +137,7 @@ void App::Mainloop()
 			std::shared_ptr<Image> image = imageSaveQueue.front();
 
 			editor.SetImage(image);
-			//editor.SaveImage();
+			editor.SaveImage();
 
 			imageSaveQueue.erase(imageSaveQueue.begin());
 

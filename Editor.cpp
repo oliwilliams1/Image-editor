@@ -1,5 +1,8 @@
 #include "Editor.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 Editor::Editor() {};
 
 void Editor::Initialize() {
@@ -104,6 +107,34 @@ void Editor::Render()
 	glBindVertexArray(0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Editor::SaveImage()
+{
+	Render();
+
+	unsigned char* data = new unsigned char[currentImage->width * currentImage->height * currentImage->channels];
+
+	GLenum format = GL_RGB;
+	if (currentImage->channels == 4)
+	{
+		format = GL_RGBA;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, mainTexture);
+	glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, data);
+
+	std::string fileName = currentImage->filePath;
+	size_t dotIndex = fileName.find_last_of('.');
+	if (dotIndex != std::string::npos)
+	{
+		fileName = fileName.substr(0, dotIndex);
+	}
+
+	fileName += "_edited.jpg";
+
+	std::cout << "Saving image: " << fileName << std::endl;
+	stbi_write_jpg(fileName.c_str(), currentImage->width, currentImage->height, currentImage->channels, data, 100);
 }
 
 void Editor::ShowFloatAsCheckbox(float* value, const char* label)

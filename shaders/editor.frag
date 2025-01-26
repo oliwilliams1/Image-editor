@@ -10,6 +10,11 @@ uniform sampler2D u_InputImage;
 
 layout(std140) uniform ImageEditData 
 {
+    vec3 u_AvgColour;
+    float p1;
+	vec3 u_AWB_ScalingFactors;
+    float p2;
+
 	float u_Gamma; // [0 or 1] switch
 
     float u_Exposure; // [-5, 5] working ev
@@ -22,12 +27,7 @@ layout(std140) uniform ImageEditData
 	float u_Saturation; // [0, 5]
 	float u_Invert; // [0 or 1] switch
 
-    float u_ApplyAwb; // [0 or 1] switch
-    
-    vec3 u_AvgColour;
-    float p1;
-	vec3 u_AWB_ScalingFactors;
-    float p2;
+    float u_ApplyAwb; // [0 or 1] switch  
 };
 
 const mat3 rgb2xyz = mat3(+0.4124, +0.2126, +0.0193,
@@ -125,11 +125,13 @@ void main()
 
     vec3 colour = imageColour.rgb;
 
+    colour = pow(colour, vec3(u_Gamma));
+    if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
+    colour = pow(colour, vec3(1.0 / u_Gamma));
+
     colour = ApplyExposure(colour);
 	colour = ApplyWhiteBalance(colour);
     colour = ApplyHueSat(colour);
-
-    if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}    
 
     FragColor = vec4(colour, imageColour.a);
 }
