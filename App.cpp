@@ -132,6 +132,20 @@ void App::Mainloop()
 			imagePathQueue.erase(imagePathQueue.begin());
 		}
 
+		if (imageSaveQueue.size() != 0)
+		{
+			std::shared_ptr<Image> image = imageSaveQueue.front();
+
+			editor.SetImage(image);
+			//editor.SaveImage();
+
+			imageSaveQueue.erase(imageSaveQueue.begin());
+
+			selectedImageIndex = -1;
+			editor.SetImage(nullptr);
+		}
+		
+
 		glfwPollEvents();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -315,7 +329,7 @@ void App::RenderUI()
 	{
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 15 - ImGui::GetStyle().WindowPadding.y);
 
-		ImGui::Text("Loaded images %i", images.size());
+		ImGui::Text("Loaded images: %i", images.size());
 	}
 
 	ImGui::End();
@@ -353,6 +367,44 @@ void App::RenderUI()
 
 			NFD_Quit();
 		}
+
+		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 
+		{
+			if (ImGui::Selectable("Save image")) 
+			{
+				fileWindowOpen = false;
+				wishImagesAmnt--;
+
+				imageSaveQueue.push_back(images[selectedImageIndex]);
+
+				images.erase(images.begin() + selectedImageIndex);
+
+				selectedImageIndex = -1;
+			}
+		}
+
+		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 
+		{
+			if (ImGui::Selectable("Save all images"))
+			{
+				fileWindowOpen = false;
+				wishImagesAmnt = 0;
+				
+				for (int i = 0; i < images.size(); i++)
+				{
+					imageSaveQueue.push_back(images[i]);
+
+					images.clear();
+					selectedImageIndex = -1;
+				}
+			}
+		}
+		
+		if (ImGui::Selectable("Exit"))
+		{
+			glfwSetWindowShouldClose(window, true);
+		}
+
 		ImGui::End();
 	}
 

@@ -50,6 +50,9 @@ void Editor::SetupUBO()
 void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 {
 	this->currentImage = imagePtr;
+
+	if (imagePtr == nullptr) return;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
 
 	if (mainTexture != 0)
@@ -81,6 +84,7 @@ void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 
 void Editor::Render() 
 {
+	if (currentImage == nullptr) return;
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
 	glViewport(0, 0, currentImage->width, currentImage->height);
 
@@ -140,6 +144,7 @@ void Editor::RenderUI() {
 
 	// Image Data Section
 	ImGui::SeparatorText("Image Data");
+	ImGui::Text("Resolution: %ix%i, channels: %i", currentImage->width, currentImage->height, currentImage->channels);
 	ImGuiFloatSlider("Gamma", &currentImage->editData.gamma, 0.2f, 5.0f, 0.1f);
 
 	ImGui::SeparatorText("Adjustments");

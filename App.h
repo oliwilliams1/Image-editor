@@ -30,6 +30,7 @@ private:
 	GLFWwindow* window;
 	std::vector<std::string> imagePathQueue;
 	std::vector<std::shared_ptr<Image>> images;
+	std::vector<std::shared_ptr<Image>> imageSaveQueue;
 	int wishImagesAmnt;
 
 	int selectedImageIndex;
