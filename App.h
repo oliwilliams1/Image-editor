@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <vector>
+#include <memory>
 #include <string>
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -28,7 +29,7 @@ private:
 
 	GLFWwindow* window;
 	std::vector<std::string> imagePathQueue;
-	std::vector<Image> images;
+	std::vector<std::shared_ptr<Image>> images;
 	int wishImagesAmnt;
 
 	int selectedImageIndex;

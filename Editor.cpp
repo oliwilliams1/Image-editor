@@ -47,9 +47,9 @@ void Editor::SetupUBO()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
 }
 
-void Editor::SetImage(Image image)
+void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 {
-	this->currentImage = image;
+	this->currentImage = imagePtr;
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
 
 	if (mainTexture != 0)
@@ -60,7 +60,7 @@ void Editor::SetImage(Image image)
 
 	glGenTextures(1, &mainTexture);
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, image.width, image.height, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, imagePtr->width, imagePtr->height, 0, GL_RGBA, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mainTexture, 0);
@@ -75,20 +75,20 @@ void Editor::SetImage(Image image)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &image.editData, GL_DYNAMIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &imagePtr->editData, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Editor::Render() 
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
-	glViewport(0, 0, currentImage.width, currentImage.height);
+	glViewport(0, 0, currentImage->width, currentImage->height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mainTexture);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, currentImage.textureID);
+	glBindTexture(GL_TEXTURE_2D, currentImage->textureID);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -104,27 +104,29 @@ void Editor::Render()
 
 void Editor::RenderUI()
 {
-	if (currentImage.textureID == 0) return;
+	if (currentImage == nullptr) return;
 	bool needsUpdate = false;
 
-	if (ImGui::DragFloat("Gamma", &currentImage.editData.gamma, 0.1f, 0.2f, 5.0f)) needsUpdate = true;
+	ImGui::SeparatorText("Image data");
+	if (ImGui::DragFloat("Gamma", &currentImage->editData.gamma, 0.1f, 0.2f, 5.0f)) needsUpdate = true;
 
-	if (ImGui::DragFloat("Exposure", &currentImage.editData.exposure, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Gamut map", &currentImage.editData.gamutMap, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Tonemap", &currentImage.editData.reinhard, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	ImGui::SeparatorText("Adjustments");
+	if (ImGui::DragFloat("Exposure", &currentImage->editData.exposure, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Gamut map", &currentImage->editData.gamutMap, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Tonemap", &currentImage->editData.reinhard, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
 
-	if (ImGui::DragFloat("Col Temp S", &currentImage.editData.colTempS, 10.0f, 2000.0f, 10000.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Col Temp T", &currentImage.editData.colTempT, 10.0f, 2000.0f, 10000.0f)) needsUpdate = true;
-	
-	
-	if (ImGui::DragFloat3("Colour Balance", &currentImage.editData.colBalance.x, 0.05f, -1.0f, 1.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Preserve Luma", &currentImage.editData.keepLumaColBalance, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	ImGui::SeparatorText("Temperature");
+	if (ImGui::DragFloat("Col Temp S", &currentImage->editData.colTempS, 10.0f, 2000.0f, 10000.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Col Temp T", &currentImage->editData.colTempT, 10.0f, 2000.0f, 10000.0f)) needsUpdate = true;
 
-	if (ImGui::DragFloat("Hue", &currentImage.editData.hue, 1.0f, -180.0f, 180.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Saturation", &currentImage.editData.saturation, 0.05f, 0.0f, 5.0f)) needsUpdate = true;
-	if (ImGui::DragFloat("Invert luminance", &currentImage.editData.invert, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	ImGui::SeparatorText("Colour");
+	if (ImGui::DragFloat3("Colour Balance", &currentImage->editData.colBalance.x, 0.05f, -1.0f, 1.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Preserve Luma", &currentImage->editData.keepLumaColBalance, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Hue", &currentImage->editData.hue, 1.0f, -180.0f, 180.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Saturation", &currentImage->editData.saturation, 0.05f, 0.0f, 5.0f)) needsUpdate = true;
+	if (ImGui::DragFloat("Invert luminance", &currentImage->editData.invert, 1.0f, 0.0f, 1.0f)) needsUpdate = true;
 	
-	glm::vec3 avgColour = glm::vec3(currentImage.editData.avgColour); // Create a copy
+	glm::vec3 avgColour = glm::vec3(currentImage->editData.avgColour); // Create a copy
 	ImVec4 imAvgColour = ImVec4(avgColour.x, avgColour.y, avgColour.z, 1.0f);
 
 	ImGui::ColorButton("Average colour", imAvgColour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions);
@@ -132,7 +134,7 @@ void Editor::RenderUI()
 	if (needsUpdate)
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &currentImage.editData, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &currentImage->editData, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 }

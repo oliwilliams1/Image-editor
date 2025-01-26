@@ -52,17 +52,24 @@ vec3 cct2xyz(float k)
     return vec3(x, y, 1.0 - x - y);
 }
 
-void main()
+vec3 ApplyColourBalance(vec3 colour) 
 {
-	vec4 imageColour = texture(u_InputImage, UV);
-
-	vec3 wr = xyz2lms * cct2xyz(u_ColtempS);
+    vec3 wr = xyz2lms * cct2xyz(u_ColtempS);
     vec3 wt = xyz2lms * cct2xyz(u_ColTempT);
 
-    vec3 lms = xyz2lms * rgb2xyz * pow(imageColour.rgb, vec3(u_Gamma));
+    vec3 lms = xyz2lms * rgb2xyz * pow(colour, vec3(u_Gamma));
 
     lms.rg *= wt.rg / wr.rg;
     lms.b = wt.b * pow(lms.b / wr.b, pow(wr.b / wt.b, 0.0834));
 
-    FragColor = vec4(pow(xyz2rgb * lms2xyz * lms, vec3(1.0 / u_Gamma)), 1.0);
+    return pow(xyz2rgb * lms2xyz * lms, vec3(1.0 / u_Gamma));
+}
+
+void main()
+{
+	vec4 imageColour = texture(u_InputImage, UV);
+
+	vec3 colour = ApplyColourBalance(imageColour.rgb);
+
+    FragColor = vec4(colour, imageColour.a);
 }

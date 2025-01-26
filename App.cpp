@@ -239,8 +239,8 @@ void App::RenderUI()
 
 	if (selectedImageIndex != -1)
 	{
-		int imageWidth = images[selectedImageIndex].width;
-		int imageHeight = images[selectedImageIndex].height;
+		int imageWidth = images[selectedImageIndex]->width;
+		int imageHeight = images[selectedImageIndex]->height;
 		float aspectRatioImage = (float)imageWidth / (float)imageHeight;
 
 		int viewportWidth = windowWidth - 500;
@@ -283,10 +283,10 @@ void App::RenderUI()
 
 	for (int i = 0; i < images.size(); i++)
 	{
-		float aspectRatio = (float)images[i].width / (float)images[i].height;
+		float aspectRatio = (float)images[i]->width / (float)images[i]->height;
 		int desiredWidth = desiredHeight * aspectRatio;
 
-		ImGui::Image((ImTextureID)(intptr_t)images[i].textureID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+		ImGui::Image((ImTextureID)(intptr_t)images[i]->textureID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		if (ImGui::IsItemClicked()) {
 			selectedImageIndex = i;
@@ -362,7 +362,7 @@ App::~App()
 {
 	for (int i = 0; i < images.size(); i++)
 	{
-		glDeleteTextures(1, &images[i].textureID);
+		glDeleteTextures(1, &images[i]->textureID);
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

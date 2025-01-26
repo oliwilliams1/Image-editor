@@ -97,7 +97,7 @@ void SetupImGuiStyle() {
 	io.Fonts->AddFontFromFileTTF("Roboto-Black.ttf", 16.0f);
 }
 
-Image LoadImage(const std::string& filePath)
+std::shared_ptr<Image> LoadImage(const std::string& filePath)
 {
 	int width, height, channels;
 	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
@@ -106,7 +106,7 @@ Image LoadImage(const std::string& filePath)
 	{
 		std::cout << "STB failed to load image: " << filePath << std::endl;
 		exit(1);
-		return {};
+		return nullptr;
 	}
 
 	GLuint textureID;
@@ -133,17 +133,20 @@ Image LoadImage(const std::string& filePath)
 	{
 		std::cout << "OpenGL Error: " << error << " for texture ID: " << textureID << std::endl;
 		glDeleteTextures(1, &textureID);
-		stbi_image_free(data);
-		return {};
+		return nullptr; 
 	}
 
 	std::cout << avgColour.x << ", " << avgColour.y << ", " << avgColour.z << std::endl;
 
-	Image image = { textureID, filePath, width, height, channels };
+	auto imagePtr = std::make_shared<Image>();
+	imagePtr->textureID = textureID;
+	imagePtr->filePath = filePath;
+	imagePtr->width = width;
+	imagePtr->height = height;
+	imagePtr->channels = channels;
+	imagePtr->editData.avgColour = avgColour;
 
-	image.editData.avgColour = avgColour;
-
-	return image;
+	return imagePtr;
 }
 
 glm::vec3 GetAvgColour(GLuint textureID, GLint maxLevel)
@@ -177,12 +180,11 @@ glm::vec3 GetAvgColour(GLuint textureID, GLint maxLevel)
 
 
 	glm::vec3 avgColor(0.0f);
-	for (int i = 0; i < width * height * channels; i+=3)
+	for (int i = 0; i < width * height; i++)
 	{
 		avgColor.r += readData[i * channels] / 255.0f;
 		avgColor.g += readData[i * channels + 1] / 255.0f;
 		avgColor.b += readData[i * channels + 2] / 255.0f;
-
 	}
 
 	avgColor /= (width * height);

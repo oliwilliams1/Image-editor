@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 #include <string>
 #include <GL/glew.h>
 #include <glm/vec3.hpp>
@@ -24,10 +25,11 @@ struct ImageEditData
 	float invert; // [0 or 1]
 
 	glm::vec3 avgColour;
+	glm::vec3 AWB_ScalingFactors;
 
 	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
 		colTempS(6500.0f), colTempT(6500.0f), colBalance(0.0f), keepLumaColBalance(0.0f), 
-		hue(0.0f), saturation(0.0f), invert(0.0f), avgColour(0.0f) {}
+		hue(0.0f), saturation(0.0f), invert(0.0f), avgColour(0.0f), AWB_ScalingFactors(1.0f) {}
 };
 
 struct Image
@@ -40,6 +42,6 @@ struct Image
 
 glm::vec3 GetAvgColour(GLuint textureID, GLint maxLevel);
 void SetupImGuiStyle();
-Image LoadImage(const std::string& filePath);
+std::shared_ptr<Image> LoadImage(const std::string& filePath);
 bool ReadFile(const char* pFileName, std::string& outFile);
 void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
