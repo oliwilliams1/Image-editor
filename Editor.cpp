@@ -155,9 +155,6 @@ void Editor::RenderUI() {
 
 	// Color Section
 	ImGui::SeparatorText("Colour");
-	ImGuiVec3Slider("Colour Balance", &currentImage->editData.colBalance, -1.0f, 1.0f, 0.05f);
-	ShowFloatAsCheckbox(&currentImage->editData.keepLumaColBalance, "Preserve Luma");
-
 	ImGuiFloatSlider("Hue", &currentImage->editData.hue, -180.0f, 180.0f, 1.0f);
 	ImGuiFloatSlider("Saturation", &currentImage->editData.saturation, 0.0f, 5.0f, 0.05f);
 	ShowFloatAsCheckbox(&currentImage->editData.invert, "Invert Luminance");
