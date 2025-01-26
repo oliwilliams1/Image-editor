@@ -4,7 +4,8 @@
 static bool dragging = false;
 static double offsetX, offsetY;
 
-static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) 
+{
 	if (button == GLFW_MOUSE_BUTTON_LEFT) 
 	{
 		if (action == GLFW_PRESS) 
@@ -22,14 +23,16 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
 	}
 }
 
-static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-	if (dragging) {
+static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) 
+{
+	if (dragging) 
+	{
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 		int x, y;
 		glfwGetWindowPos(window, &x, &y);
 
-		if (ypos > 32) return;
+		if (ypos > 45) return;
 		if (xpos < 175 || xpos > width - 175) return;
 		// Calculate new window position
 		int newX = x + static_cast<int>(xpos - offsetX);
@@ -137,6 +140,12 @@ void App::Mainloop()
 
 		RenderUI();
 
+		GLenum error = glGetError();
+		if (error != GL_NO_ERROR)
+		{
+			std::cout << "OpenGL error: " << error << std::endl;
+		}
+
 		glfwSwapBuffers(window);
 	}
 }
@@ -147,21 +156,23 @@ void App::OpenFolderContents(const std::string& folderPath)
 
 	std::filesystem::path path(folderPath);
 
-	for (const auto& entry : std::filesystem::directory_iterator(path)) {
-		if (entry.is_regular_file()) {
+	for (const auto& entry : std::filesystem::directory_iterator(path)) 
+	{
+		if (entry.is_regular_file()) 
+		{
 			std::string fileName = entry.path().filename().string();
 			std::string extension = entry.path().extension().string();
 
 			// Check if the file type is supported
-			if (std::find(supportedFileTypes.begin(), supportedFileTypes.end(), extension) != supportedFileTypes.end()) {
-				
+			if (std::find(supportedFileTypes.begin(), supportedFileTypes.end(), extension) != supportedFileTypes.end()) 
+			{
 				std::filesystem::path filePath = entry.path();
 				imagePathQueue.push_back(filePath.string());
 			}
 		}
 	}
 
-	wishImagesAmnt = imagePathQueue.size();
+	wishImagesAmnt += imagePathQueue.size();
 }
 
 void App::RenderUI()

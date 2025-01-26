@@ -122,7 +122,11 @@ Image LoadImage(const std::string& filePath)
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	GLint maxLevel = floor(log2(std::max(width, height)));
+
 	stbi_image_free(data);
+
+	glm::vec3 avgColour = GetAvgColour(textureID, maxLevel);
 
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR)
@@ -133,8 +137,63 @@ Image LoadImage(const std::string& filePath)
 		return {};
 	}
 
-	Image image = { textureID, filePath, width, height, channels };
+	std::cout << avgColour.x << ", " << avgColour.y << ", " << avgColour.z << std::endl;
+
+	Image image = { textureID, filePath, width, height, channels, avgColour };
 	return image;
+}
+
+glm::vec3 GetAvgColour(GLuint textureID, GLint maxLevel)
+{
+	GLint width, height, channels;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, maxLevel, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, maxLevel, GL_TEXTURE_HEIGHT, &height);
+
+	GLint internalFormat;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, maxLevel, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+
+	switch (internalFormat) 
+	{
+	case GL_RGB:
+	case GL_RGB8:
+		channels = 3;
+		break;
+	case GL_RGBA:
+	case GL_RGBA8:
+		channels = 4;
+		break;
+	default:
+		std::cerr << "Unknown internal format!" << std::endl;
+		return glm::vec3(0.5f);
+	}
+
+	GLubyte* readData = new GLubyte[width * height * channels];
+
+	glGetTexImage(GL_TEXTURE_2D, maxLevel, internalFormat, GL_UNSIGNED_BYTE, readData);
+
+
+	glm::vec3 avgColor(0.0f);
+	for (int i = 0; i < width * height * channels; i+=3)
+	{
+		avgColor.r += readData[i * channels] / 255.0f;
+		avgColor.g += readData[i * channels + 1] / 255.0f;
+		avgColor.b += readData[i * channels + 2] / 255.0f;
+
+	}
+
+	avgColor /= (width * height);
+
+	delete[] readData;
+
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		std::cout << "OpenGL Error: " << error << " for texture ID: " << textureID << "while getting average colour" << std::endl;
+		return {};
+	}
+
+	return avgColor;
 }
 
 bool ReadFile(const char* pFileName, std::string& outFile) 
