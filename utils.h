@@ -16,20 +16,26 @@ struct ImageEditData
 	float reinhard; // [0 or 1] switch
 
 	float colTempS, colTempT; // Start temperature, target temperature [2000k, 10000k]
-
-	glm::vec3 colBalance; // [-1, 1] cyan <-> red, magenta <-> blue, yellow <-> blue
+	
 	float keepLumaColBalance; // [0 or 1] switch
-
+	
 	float hue; // [-180, 180] degrees
 	float saturation; // [0, 5]
-	float invert; // [0 or 1]
+	float invert; // [0 or 1] switch
 
+	float u_ApplyAwb; // [0 or 1] switch
+	
+	glm::vec3 colBalance; // [-1, 1] cyan <-> red, magenta <-> blue, yellow <-> blue
+	float p1 = 1.0f;
 	glm::vec3 avgColour;
+	float p2 = 1.0f;
 	glm::vec3 AWB_ScalingFactors;
+	float p3 = 1.0f;
 
 	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
 		colTempS(6500.0f), colTempT(6500.0f), colBalance(0.0f), keepLumaColBalance(0.0f), 
-		hue(0.0f), saturation(0.0f), invert(0.0f), avgColour(0.0f), AWB_ScalingFactors(1.0f) {}
+		hue(0.0f), saturation(0.0f), invert(0.0f), avgColour(0.0f), 
+		u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f) {}
 };
 
 struct Image

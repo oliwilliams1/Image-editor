@@ -136,7 +136,12 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 		return nullptr; 
 	}
 
-	std::cout << avgColour.x << ", " << avgColour.y << ", " << avgColour.z << std::endl;
+	// Avoid div / 0
+	avgColour.r = std::max(0.01f, avgColour.r);
+	avgColour.g = std::max(0.01f, avgColour.g);
+	avgColour.b = std::max(0.01f, avgColour.b);
+
+	glm::vec3 AWB_ScalingFactors = glm::vec3(1.0f / avgColour.r, 1.0f / avgColour.g, 1.0f / avgColour.b);
 
 	auto imagePtr = std::make_shared<Image>();
 	imagePtr->textureID = textureID;
@@ -145,6 +150,7 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 	imagePtr->height = height;
 	imagePtr->channels = channels;
 	imagePtr->editData.avgColour = avgColour;
+	imagePtr->editData.AWB_ScalingFactors = AWB_ScalingFactors;
 
 	return imagePtr;
 }

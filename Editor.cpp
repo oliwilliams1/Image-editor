@@ -130,6 +130,7 @@ void Editor::RenderUI()
 	ImVec4 imAvgColour = ImVec4(avgColour.x, avgColour.y, avgColour.z, 1.0f);
 
 	ImGui::ColorButton("Average colour", imAvgColour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions);
+	if (ImGui::DragFloat("Apply AWB", &currentImage->editData.u_ApplyAwb , 1.0f, 0.0f, 1.0f)) needsUpdate = true;
 
 	if (needsUpdate)
 	{

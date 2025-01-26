@@ -18,12 +18,20 @@ layout(std140) uniform ImageEditData
 
     float u_ColtempS, u_ColTempT; // Start temperature, target temperature [2000k, 10000k]
 
-    vec3 u_ColourBalance; // [-1, 1] cyan <-> red, magenta <-> blue, yellow <-> blue
     float u_KeepLumaColBalance; // [0 or 1] switch
 
     float u_Hue; // [-180, 180] degrees
-	float u_Saturation; // [0, 1] saturation
-	float u_Brightness; // [-1, 1] brightness
+	float u_Saturation; // [0, 5]
+	float u_Invert; // [0 or 1] switch
+
+    float u_ApplyAwb; // [0 or 1] switch
+    
+    vec3 u_ColourBalance; // [-1, 1] cyan <-> red, magenta <-> blue, yellow <-> blue
+    float p1;
+    vec3 u_AvgColour;
+    float p2;
+	vec3 u_AWB_ScalingFactors;
+    float p3;
 };
 
 const mat3 rgb2xyz = mat3(+0.4124, +0.2126, +0.0193,
@@ -70,6 +78,8 @@ void main()
 	vec4 imageColour = texture(u_InputImage, UV);
 
 	vec3 colour = ApplyColourBalance(imageColour.rgb);
+
+    if (u_ApplyAwb > 0.5) {colour.rgb *= 0.5;}
 
     FragColor = vec4(colour, imageColour.a);
 }
