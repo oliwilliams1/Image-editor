@@ -34,7 +34,7 @@ struct ImageEditData
 
 	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
 		colTempS(6500.0f), colTempT(6500.0f), colBalance(0.0f), keepLumaColBalance(0.0f), 
-		hue(0.0f), saturation(0.0f), invert(0.0f), avgColour(0.0f), 
+		hue(0.0f), saturation(1.0f), invert(0.0f), avgColour(0.0f), 
 		u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f) {}
 };
 

@@ -27,6 +27,11 @@ private:
 	GLuint u_InputImageLoc;
 	GLuint editorFBO, quadVAO, quadVBO;
 
+	void ShowFloatAsCheckbox(float* value, const char* label);
+	void ImGuiFloatSlider(const char* label, float* value, float min, float max, float step);
+	void ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step);
+
 	void SetupUBO();
 	GLuint UBO;
+	bool needsUpdate = false;
 };
