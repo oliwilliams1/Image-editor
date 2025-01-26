@@ -79,7 +79,7 @@ void main()
 
 	vec3 colour = ApplyColourBalance(imageColour.rgb);
 
-    if (u_ApplyAwb > 0.5) {colour.rgb *= 0.5;}
+    if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
 
     FragColor = vec4(colour, imageColour.a);
 }
