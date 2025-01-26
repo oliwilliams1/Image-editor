@@ -23,8 +23,9 @@ private:
 	Shader* shader;
 	Image currentImage;
 
-	float colTempS, colTempT;
-	GLuint u_ColTempSLoc, u_ColTempTLoc;
 	GLuint u_InputImageLoc;
 	GLuint editorFBO, quadVAO, quadVBO;
+
+	void SetupUBO();
+	GLuint UBO;
 };

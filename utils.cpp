@@ -11,7 +11,7 @@ void SetupImGuiStyle() {
 	style.Alpha = 1.0f;
 	style.DisabledAlpha = 0.6000000238418579f;
 	style.WindowPadding = ImVec2(5.5f, 8.300000190734863f);
-	style.WindowRounding = 4.5f;
+	style.WindowRounding = 0.0f;
 	style.WindowBorderSize = 1.0f;
 	style.WindowMinSize = ImVec2(32.0f, 32.0f);
 	style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
@@ -139,7 +139,10 @@ Image LoadImage(const std::string& filePath)
 
 	std::cout << avgColour.x << ", " << avgColour.y << ", " << avgColour.z << std::endl;
 
-	Image image = { textureID, filePath, width, height, channels, avgColour };
+	Image image = { textureID, filePath, width, height, channels };
+
+	image.editData.avgColour = avgColour;
+
 	return image;
 }
 
