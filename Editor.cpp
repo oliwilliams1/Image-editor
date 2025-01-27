@@ -137,7 +137,7 @@ void Editor::SaveImage(std::shared_ptr<Image> image)
 	stbi_write_jpg(fileName.c_str(), currentImage->width, currentImage->height, currentImage->channels, data, outputJpgQuality);
 }
 
-void Editor::ShowFloatAsCheckbox(float* value, const char* label)
+void Editor::ShowFloatAsCheckbox(float* value, const char* label, bool updSSBO)
 {
 	bool checkboxValue = *value != 0.0f;
 
@@ -145,10 +145,11 @@ void Editor::ShowFloatAsCheckbox(float* value, const char* label)
 	{
 		*value = checkboxValue ? 1.0f : 0.0f;
 		needsUBOUpdate = true;
+		if (updSSBO) needSSBOUpdate = true;
 	}
 }
 
-void Editor::ImGuiFloatSlider(const char* label, float* value, float min, float max, float step)
+void Editor::ImGuiFloatSlider(const char* label, float* value, float min, float max, float step, bool updSSBO)
 {
 	ImGui::Text(label);
 	ImGui::SameLine();
@@ -156,10 +157,11 @@ void Editor::ImGuiFloatSlider(const char* label, float* value, float min, float 
 	if (ImGui::SliderFloat(label, value, min, max, "%.2f"))
 	{
 		needsUBOUpdate = true;
+		if (updSSBO) needSSBOUpdate = true;
 	}
 }
 
-void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step)
+void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step, bool updSSBO)
 {
 	ImGui::Text(label);
 	ImGui::SameLine();
@@ -167,6 +169,7 @@ void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, flo
 	if (ImGui::SliderFloat3(label, &value->x, min, max, "%.2f"))
 	{
 		needsUBOUpdate = true;
+		if (updSSBO) needSSBOUpdate = true;
 	}
 }
 
@@ -222,6 +225,8 @@ void Editor::RenderUI() {
 			needSSBOUpdate = true;
 		}
 
+		int deleteMaskIndex = -1;
+
 		if (currentImage->masks.size() != 0)
 		{
 			ImGui::BeginTabBar("Masks tab bar");
@@ -233,12 +238,35 @@ void Editor::RenderUI() {
 					if (ImGui::Button("Delete Mask"))
 					{
 						needSSBOUpdate = true;
-						currentImage->masks.erase(currentImage->masks.begin() + i);
+						deleteMaskIndex = i;
 					}
 					ImGui::EndTabItem();
+
+					// Adjustments
+					ImGui::SeparatorText("Adjustments");
+					ImGuiFloatSlider("Exposure", &currentImage->masks[i].editData.exposure, -5.0f, 5.0f, 0.1f, true);
+					ShowFloatAsCheckbox(&currentImage->masks[i].editData.reinhard, "Tonemap", true);
+					ImGuiFloatSlider("Shadows", &currentImage->masks[i].editData.shadows, -1.0f, 1.0f, 0.05f, true);
+					ImGuiFloatSlider("Highlights", &currentImage->masks[i].editData.highlights, -1.0f, 1.0f, 0.05f, true);
+
+					// Temperature Section
+					ImGui::SeparatorText("Temperature");
+					ImGuiFloatSlider("Color Temp", &currentImage->masks[i].editData.colTemp, -1.0f, 1.0f, 0.05f, true);
+					ImGuiFloatSlider("Color Tint", &currentImage->masks[i].editData.colTint, -1.0f, 1.0f, 0.05f, true);
+
+					// Color Section
+					ImGui::SeparatorText("Colour");
+					ImGuiFloatSlider("Hue", &currentImage->masks[i].editData.hue, -180.0f, 180.0f, 1.0f, true);
+					ImGuiFloatSlider("Saturation", &currentImage->masks[i].editData.saturation, 0.0f, 5.0f, 0.05f, true);
+					ShowFloatAsCheckbox(&currentImage->masks[i].editData.invert, "Invert Luminance", true);
 				}
 			}
 			ImGui::EndTabBar();
+		}
+
+		if (deleteMaskIndex != -1) 
+		{
+			currentImage->masks.erase(currentImage->masks.begin() + deleteMaskIndex);
 		}
 
 		ImGui::EndTabItem();
@@ -252,12 +280,15 @@ void Editor::RenderUI() {
 	}
 
 	if (needSSBOUpdate) {
+		UpdateUBO(); // <-- Num masks is stored in here, so it needs to be updated for gpu to not kill itself
 		UpdateMaskSSBO();
 	}
 }
 
 void Editor::UpdateUBO()
 {
+	currentImage->editData.numMasks = currentImage->masks.size();
+
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &currentImage->editData, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -267,7 +298,6 @@ void Editor::UpdateUBO()
 
 void Editor::UpdateMaskSSBO()
 {
-	std::cout << "Updating SSBO" << std::endl;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, maskSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaskEditData) * currentImage->masks.size(), nullptr, GL_DYNAMIC_DRAW);
 

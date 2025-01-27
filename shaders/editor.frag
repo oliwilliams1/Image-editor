@@ -6,14 +6,14 @@ in vec2 UV;
 
 uniform sampler2D u_InputImage;
 
-// https://github.com/kajott/GIPS/blob/main/shaders/Color/Color%20Temperature.glsl
-
 layout(std140) uniform ImageEditData 
 {
     vec3 u_AvgColour;
-    float p1;
+    float padding;
 	vec3 u_AWB_ScalingFactors;
-    float p2;
+    float padding2;
+
+    uint u_NumMasks;
 
 	float u_Gamma; // [0 or 1] switch
 
@@ -33,18 +33,39 @@ layout(std140) uniform ImageEditData
     float u_Highlights; // [-1, 1]
 };
 
+struct MaskData 
+{
+    float exposure;
+    float reinhard;
+
+    float colTemp;
+    float colTint;
+
+    float hue;
+    float saturation;
+    float invert;
+
+    float shadows;
+    float highlights;
+};
+
+layout(std430, binding = 1) buffer MaskDataBuffer
+{
+    MaskData maskData[];
+};
+
 // https://github.com/kajott/GIPS/blob/main/shaders/Color/Exposure.glsl
-vec3 ApplyExposure(vec3 inColour)
+vec3 ApplyExposure(vec3 inColour, float ev, float tonemapping)
 {
     // forward gamma
     vec3 colour = inColour;
 
     // apply gain
-    float gain = exp2(u_Exposure);
+    float gain = exp2(ev);
     colour *= gain;
 
     // tone mapping
-    if (u_Reinhard > 0.5) {
+    if (tonemapping > 0.5) {
         colour = colour / (colour + 1.0);
         // post-scale so white stays white
         colour *= (gain + 1.0) / gain;
@@ -57,9 +78,9 @@ vec3 ApplyExposure(vec3 inColour)
     return colour;
 }
 
-vec3 ApplyHueSat(vec3 inColour) 
+vec3 ApplyHueSat(vec3 inColour, float inHue, float sat, float invert)
 {
-    float hue = radians(u_Hue);
+    float hue = radians(inHue);
 
     vec3 colour = inColour;
     float luma = dot(inColour, vec3(0.299, 0.587, 0.114));
@@ -70,14 +91,14 @@ vec3 ApplyHueSat(vec3 inColour)
                   b+s, b+c, b-s,
                   b-s, b+s, b+c) * chroma;
 
-    if (u_Invert > 0.5) { luma = 1.0 - luma; }
+    if (invert > 0.5) { luma = 1.0 - luma; }
 
-    colour = vec3(luma) + chroma * u_Saturation;
+    colour = vec3(luma) + chroma * sat;
 
     return colour;
 }
 
-vec3 ApplyShadowsAndHighlights(vec3 inColour) 
+vec3 ApplyShadowsAndHighlights(vec3 inColour, float shadows, float highlights)
 {
     vec3 colour = inColour;
     float luminance = dot(colour, vec3(0.2126, 0.7152, 0.0722));
@@ -89,22 +110,22 @@ vec3 ApplyShadowsAndHighlights(vec3 inColour)
 
     float highlightMask = smoothstep(highlightThreshold, 1.0, luminance);
 
-    colour *= 1.0 + shadowMask * u_Shadows * 0.5;
-    colour *= 1.0 + highlightMask * u_Highlights * 0.5;
+    colour *= 1.0 + shadowMask * shadows * 0.5;
+    colour *= 1.0 + highlightMask * highlights * 0.5;
 
     return vec3(colour);
 }
 
-vec3 ApplyColourTempTint(vec3 inColour)
+vec3 ApplyColourTempTint(vec3 inColour, float colTemp, float colTint)
 {
     vec3 colour = inColour;
 
-    float tempFac = u_ColTemp;
+    float tempFac = colTemp;
 
     vec3 tempTint;
 
     tempTint.r = 1.0 + tempFac   * 0.5; // Avoid unatural colours
-    tempTint.g = 1.0 + u_ColTint * 0.5; // Avoid unatural colours
+    tempTint.g = 1.0 + colTint * 0.5; // Avoid unatural colours
     tempTint.b = 1.0 + -tempFac  * 0.5; // Avoid unatural colours
 
     return tempTint * colour;
@@ -115,16 +136,27 @@ void main()
 	vec4 imageColour = texture(u_InputImage, UV);
 
     vec3 colour = imageColour.rgb;
-    colour = ApplyHueSat(colour);
+    colour = ApplyHueSat(colour, u_Hue, u_Saturation, u_Invert);
     
     colour = pow(colour, vec3(u_Gamma));
 
     if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
-    colour = ApplyExposure(colour);
-    colour = ApplyShadowsAndHighlights(colour);
-    colour = ApplyColourTempTint(colour);
+    colour = ApplyExposure(colour, u_Exposure, u_Reinhard);
+    colour = ApplyShadowsAndHighlights(colour, u_Shadows, u_Highlights);
+    colour = ApplyColourTempTint(colour, u_ColTemp, u_ColTint);
 
     colour = pow(colour, vec3(1.0 / u_Gamma));
+
+    for (int i = 0; i < u_NumMasks; i++) 
+    {
+		colour = ApplyHueSat(colour, maskData[i].hue, maskData[i].saturation, maskData[i].invert);
+
+        colour = pow(colour, vec3(u_Gamma));
+        colour = ApplyExposure(colour, maskData[i].exposure, maskData[i].reinhard);
+        colour = ApplyShadowsAndHighlights(colour, maskData[i].shadows, maskData[i].highlights);
+		colour = ApplyColourTempTint(colour, maskData[i].colTemp, maskData[i].colTint);
+		colour = pow(colour, vec3(1.0 / u_Gamma));
+    }
 
     FragColor = vec4(colour, imageColour.a);
 }

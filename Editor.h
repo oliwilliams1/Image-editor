@@ -28,9 +28,9 @@ private:
 
 	int outputJpgQuality = 90;
 
-	void ShowFloatAsCheckbox(float* value, const char* label);
-	void ImGuiFloatSlider(const char* label, float* value, float min, float max, float step);
-	void ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step);
+	void ShowFloatAsCheckbox(float* value, const char* label, bool updSSBO = false);
+	void ImGuiFloatSlider(const char* label, float* value, float min, float max, float step, bool updSSBO = false);
+	void ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step, bool updSSBO = false);
 
 	void SetupUBO();
 	void UpdateUBO();

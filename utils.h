@@ -14,48 +14,45 @@ constexpr SBmask SABLE_LUMINANCE_MASK = 0x000001;
 
 struct ImageEditData
 {
-	glm::vec3 avgColour;
-	float p1 = 1.0f;
-	glm::vec3 AWB_ScalingFactors;
-	float p2 = 1.0f;
+	glm::vec3 avgColour = glm::vec3(0.0f);
+	float padding = 1.0f;
+	glm::vec3 AWB_ScalingFactors = glm::vec3(1.0f);
+	float padding2 = 1.0f;
 
-	float gamma; // [0.2, 5.0]
+	unsigned int numMasks = 0;
 
-	float exposure; // [-5, 5] working ev
-	float reinhard; // [0 or 1] switch
+	float gamma = 2.2f; // [0.2, 5.0]
 
-	float colTemp; // [-1.0, 1.0]
-	float colTint; // [-1.0, 1.0]
+	float exposure = 0.0f; // [-5, 5] working ev
+	float reinhard = 0.0f; // [0 or 1] switch
+
+	float colTemp = 0.0f; // [-1.0, 1.0]
+	float colTint = 0.0f; // [-1.0, 1.0]
 	
-	float hue; // [-180, 180] degrees
-	float saturation; // [0, 5]
-	float invert; // [0 or 1] switch
+	float hue = 0.0f; // [-180, 180] degrees
+	float saturation = 1.0f; // [0, 5]
+	float invert = 0.0f; // [0 or 1] switch
 
-	float u_ApplyAwb; // [0 or 1] switch
+	float u_ApplyAwb = 0.0f; // [0 or 1] switch
 
-	float shadows; // [-1, 1]
-	float highlights; // [-1, 1]
-
-	ImageEditData() : exposure(0.0f), reinhard(0.0f), gamma(2.2f), 
-		colTemp(0.0f), colTint(0.0f), hue(0.0f), saturation(1.0f), 
-		invert(0.0f), avgColour(0.0f), u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f), 
-		shadows(0.0f), highlights(0.0f) {}
+	float shadows = 0.0f; // [-1, 1]
+	float highlights = 0.0f; // [-1, 1]
 };
 
 struct MaskEditData
 {
-	float exposure;
-	float reinhard;
+	float exposure = 0.0f;
+	float reinhard = 0.0f;
 
-	float colTemp;
-	float colTint;
+	float colTemp = 0.0f;
+	float colTint = 0.0f;
 
-	float hue;
-	float saturation;
-	float invert;
+	float hue = 0.0f;
+	float saturation = 1.0f;
+	float invert = 0.0f;
 
-	float shadows;
-	float highlights;
+	float shadows = 0.0f;
+	float highlights = 0.0f;
 };
 
 struct Mask
