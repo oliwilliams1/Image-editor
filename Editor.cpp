@@ -163,38 +163,75 @@ void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, flo
 void Editor::RenderUI() {
 	if (currentImage == nullptr) return;
 
-	// Export Section
-	ImGui::SeparatorText("Export");
-	if (ImGui::Button("Save")) SaveImage(currentImage);
-	ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
+	ImGui::BeginTabBar("Editor tab bar");
 
-	// Image Data Section
-	ImGui::SeparatorText("Image Data");
-	ImGui::Text("Resolution: %ix%i, channels: %i", currentImage->width, currentImage->height, currentImage->channels);
-	ImGuiFloatSlider("Gamma", &currentImage->editData.gamma, 0.2f, 5.0f, 0.1f);
+	if (ImGui::BeginTabItem("Image")) {
+		// Export Section
+		ImGui::SeparatorText("Export");
+		if (ImGui::Button("Save")) SaveImage(currentImage);
+		ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
 
-	ImGui::SeparatorText("Adjustments");
-	ImGuiFloatSlider("Exposure", &currentImage->editData.exposure, -5.0f, 5.0f, 0.1f);
-	ShowFloatAsCheckbox(&currentImage->editData.reinhard, "Tonemap");
-	ImGuiFloatSlider("Shadows", &currentImage->editData.shadows, -1.0f, 1.0f, 0.05f);
-	ImGuiFloatSlider("Highlights", &currentImage->editData.highlights, -1.0f, 1.0f, 0.05f);
+		// Image Data Section
+		ImGui::SeparatorText("Image Data");
+		ImGui::Text("Resolution: %ix%i, channels: %i", currentImage->width, currentImage->height, currentImage->channels);
+		ImGuiFloatSlider("Gamma", &currentImage->editData.gamma, 0.2f, 5.0f, 0.1f);
 
-	// Temperature Section
-	ImGui::SeparatorText("Temperature");
-	ShowFloatAsCheckbox(&currentImage->editData.u_ApplyAwb, "Auto White Balance");
-	ImGuiFloatSlider("Color Temp", &currentImage->editData.colTemp, -1.0f, 1.0f, 0.05f);
-	ImGuiFloatSlider("Color Tint", &currentImage->editData.colTint, -1.0f, 1.0f, 0.05f);
+		ImGui::SeparatorText("Adjustments");
+		ImGuiFloatSlider("Exposure", &currentImage->editData.exposure, -5.0f, 5.0f, 0.1f);
+		ShowFloatAsCheckbox(&currentImage->editData.reinhard, "Tonemap");
+		ImGuiFloatSlider("Shadows", &currentImage->editData.shadows, -1.0f, 1.0f, 0.05f);
+		ImGuiFloatSlider("Highlights", &currentImage->editData.highlights, -1.0f, 1.0f, 0.05f);
 
-	// Color Section
-	ImGui::SeparatorText("Colour");
-	ImGuiFloatSlider("Hue", &currentImage->editData.hue, -180.0f, 180.0f, 1.0f);
-	ImGuiFloatSlider("Saturation", &currentImage->editData.saturation, 0.0f, 5.0f, 0.05f);
-	ShowFloatAsCheckbox(&currentImage->editData.invert, "Invert Luminance");
+		// Temperature Section
+		ImGui::SeparatorText("Temperature");
+		ShowFloatAsCheckbox(&currentImage->editData.u_ApplyAwb, "Auto White Balance");
+		ImGuiFloatSlider("Color Temp", &currentImage->editData.colTemp, -1.0f, 1.0f, 0.05f);
+		ImGuiFloatSlider("Color Tint", &currentImage->editData.colTint, -1.0f, 1.0f, 0.05f);
 
-	// Average Color Button
-	glm::vec3 avgColour = glm::vec3(currentImage->editData.avgColour); // Create a copy
-	ImVec4 imAvgColour = ImVec4(avgColour.x, avgColour.y, avgColour.z, 1.0f);
-	ImGui::ColorButton("Average Colour", imAvgColour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions);
+		// Color Section
+		ImGui::SeparatorText("Colour");
+		ImGuiFloatSlider("Hue", &currentImage->editData.hue, -180.0f, 180.0f, 1.0f);
+		ImGuiFloatSlider("Saturation", &currentImage->editData.saturation, 0.0f, 5.0f, 0.05f);
+		ShowFloatAsCheckbox(&currentImage->editData.invert, "Invert Luminance");
+
+		// Average Color Button
+		glm::vec3 avgColour = glm::vec3(currentImage->editData.avgColour); // Create a copy
+		ImVec4 imAvgColour = ImVec4(avgColour.x, avgColour.y, avgColour.z, 1.0f);
+		ImGui::ColorButton("Average Colour", imAvgColour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions);
+		ImGui::EndTabItem();
+	}
+
+	if (ImGui::BeginTabItem("Masks"))
+	{
+		if (ImGui::Button("Add Mask"))
+		{
+			Mask mask;
+			mask.name = "Mask " + std::to_string(currentImage->masks.size() + 1);
+			currentImage->masks.push_back(mask);
+		}
+
+		if (currentImage->masks.size() != 0)
+		{
+			ImGui::BeginTabBar("Masks tab bar");
+			for (int i = 0; i < currentImage->masks.size(); i++)
+			{
+				if (ImGui::BeginTabItem(currentImage->masks[i].name.c_str()))
+				{
+					ImGui::Text(currentImage->masks[i].name.c_str());
+					if (ImGui::Button("Delete Mask"))
+					{
+						currentImage->masks.erase(currentImage->masks.begin() + i);
+					}
+					ImGui::EndTabItem();
+				}
+			}
+			ImGui::EndTabBar();
+		}
+
+		ImGui::EndTabItem();
+	}
+
+	ImGui::EndTabBar();
 
 	// Update Data if Needed
 	if (needsUpdate) {

@@ -7,6 +7,11 @@
 #include <GL/glew.h>
 #include <glm/vec3.hpp>
 
+using SBmask = int;
+
+constexpr SBmask SABLE_COLOUR_MASK = 0x000000;
+constexpr SBmask SABLE_LUMINANCE_MASK = 0x000001;
+
 struct ImageEditData
 {
 	glm::vec3 avgColour;
@@ -37,6 +42,13 @@ struct ImageEditData
 		shadows(0.0f), highlights(0.0f) {}
 };
 
+struct Mask
+{
+	SBmask maskType;
+	std::string name;
+	ImageEditData editData;
+};
+
 struct Image
 {
 	GLuint textureInID;
@@ -44,6 +56,7 @@ struct Image
 	std::string filePath;
 	int width, height, channels;
 	ImageEditData editData;
+	std::vector<Mask> masks;
 };
 
 glm::vec3 GetAvgColour(GLuint textureID, GLint maxLevel);
