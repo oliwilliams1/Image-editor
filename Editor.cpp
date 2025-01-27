@@ -98,8 +98,9 @@ void Editor::Render()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Editor::SaveImage()
+void Editor::SaveImage(std::shared_ptr<Image> image)
 {
+	SetImage(image);
 	Render();
 
 	unsigned char* data = new unsigned char[currentImage->width * currentImage->height * currentImage->channels];
@@ -164,7 +165,7 @@ void Editor::RenderUI() {
 
 	// Export Section
 	ImGui::SeparatorText("Export");
-	if (ImGui::Button("Save")) SaveImage();
+	if (ImGui::Button("Save")) SaveImage(currentImage);
 	ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
 
 	// Image Data Section

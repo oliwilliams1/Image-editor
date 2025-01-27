@@ -16,7 +16,7 @@ public:
 	void SetImage(std::shared_ptr<Image> imagePtr);
 	void Render();
 	void RenderUI();
-	void SaveImage();
+	void SaveImage(std::shared_ptr<Image> image);
 	std::shared_ptr<Image> currentImage;
 
 private:

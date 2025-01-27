@@ -127,24 +127,30 @@ void App::Mainloop()
 	{
 		if (imagePathQueue.size() != 0)
 		{
-			images.push_back(LoadImage(imagePathQueue.front()));
+			std::shared_ptr<Image> image = LoadImage(imagePathQueue.front());
+			images.push_back(image);
 			std::cout << "Loaded image: " << imagePathQueue.front() << std::endl;
 			imagePathQueue.erase(imagePathQueue.begin());
+
+			editor.SetImage(image);
+			editor.Render();
 		}
 
 		if (imageSaveQueue.size() != 0)
 		{
 			std::shared_ptr<Image> image = imageSaveQueue.front();
 
-			editor.SetImage(image);
-			editor.SaveImage();
+			editor.SaveImage(image);
 
 			imageSaveQueue.erase(imageSaveQueue.begin());
 
 			selectedImageIndex = -1;
 			editor.SetImage(nullptr);
 		}
-		
+		else
+		{
+			saveImagesAmnt = 0;
+		}
 
 		glfwPollEvents();
 
@@ -325,6 +331,15 @@ void App::RenderUI()
 
 		ImGui::ProgressBar((float)images.size() / (float)wishImagesAmnt, ImVec2(windowWidth - 12, progressBarHeight), label.c_str());
 	} 
+	else if (imageSaveQueue.size() != 0)
+	{
+		float progressBarHeight = 24.0f;
+		std::string label = "Saving images (" + std::to_string(imageSaveQueue.size()) + "/" + std::to_string(saveImagesAmnt) + ")";
+
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - progressBarHeight - ImGui::GetStyle().WindowPadding.y);
+
+		ImGui::ProgressBar((float)imageSaveQueue.size() / (float)saveImagesAmnt, ImVec2(windowWidth - 12, progressBarHeight), label.c_str());
+	}
 	else 
 	{
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 15 - ImGui::GetStyle().WindowPadding.y);
@@ -390,13 +405,12 @@ void App::RenderUI()
 				fileWindowOpen = false;
 				wishImagesAmnt = 0;
 				
-				for (int i = 0; i < images.size(); i++)
-				{
-					imageSaveQueue.push_back(images[i]);
+				saveImagesAmnt = images.size();
+				imageSaveQueue = images;
+				images.clear();
+				selectedImageIndex = -1;
 
-					images.clear();
-					selectedImageIndex = -1;
-				}
+				std::cout << imageSaveQueue.size() << std::endl;
 			}
 		}
 		
