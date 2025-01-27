@@ -191,8 +191,8 @@ void Editor::RenderUI() {
 	// Temperature Section
 	ImGui::SeparatorText("Temperature");
 	ShowFloatAsCheckbox(&currentImage->editData.u_ApplyAwb, "Auto White Balance");
-	ImGuiFloatSlider("Color Temp S", &currentImage->editData.colTempS, 2000.0f, 10000.0f, 10.0f);
-	ImGuiFloatSlider("Color Temp T", &currentImage->editData.colTempT, 2000.0f, 10000.0f, 10.0f);
+	ImGuiFloatSlider("Color Temp", &currentImage->editData.colTemp, -1.0f, 1.0f, 0.05f);
+	ImGuiFloatSlider("Color Tint", &currentImage->editData.colTint, -1.0f, 1.0f, 0.05f);
 
 	// Color Section
 	ImGui::SeparatorText("Colour");

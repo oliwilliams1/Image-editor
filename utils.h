@@ -20,7 +20,8 @@ struct ImageEditData
 	float gamutMap; // [0 or 1] switch
 	float reinhard; // [0 or 1] switch
 
-	float colTempS, colTempT; // Start temperature, target temperature [2000k, 10000k]
+	float colTemp; // [-1.0, 1.0]
+	float colTint; // [-1.0, 1.0]
 	
 	float hue; // [-180, 180] degrees
 	float saturation; // [0, 5]
@@ -29,7 +30,7 @@ struct ImageEditData
 	float u_ApplyAwb; // [0 or 1] switch
 
 	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
-		colTempS(6500.0f), colTempT(6500.0f), 
+		colTemp(0.0f), colTint(0.0f),
 		hue(0.0f), saturation(1.0f), invert(0.0f), avgColour(0.0f), 
 		u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f) {}
 };
