@@ -131,10 +131,10 @@ void Editor::SaveImage()
 		fileName = fileName.substr(0, dotIndex);
 	}
 
-	fileName += "_edited.jpg";
+	fileName += ".jpg";
 
 	std::cout << "Saving image: " << fileName << std::endl;
-	stbi_write_jpg(fileName.c_str(), currentImage->width, currentImage->height, currentImage->channels, data, 100);
+	stbi_write_jpg(fileName.c_str(), currentImage->width, currentImage->height, currentImage->channels, data, outputJpgQuality);
 }
 
 void Editor::ShowFloatAsCheckbox(float* value, const char* label)
@@ -172,6 +172,11 @@ void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, flo
 
 void Editor::RenderUI() {
 	if (currentImage == nullptr) return;
+
+	// Export Section
+	ImGui::SeparatorText("Export");
+	if (ImGui::Button("Save")) SaveImage();
+	ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
 
 	// Image Data Section
 	ImGui::SeparatorText("Image Data");
