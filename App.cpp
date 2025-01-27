@@ -3,9 +3,10 @@
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
-
+static int needsRender = 2; // to render both buffers
 static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) 
 {
+	needsRender = 2;
 	if (button == GLFW_MOUSE_BUTTON_LEFT) 
 	{
 		if (action == GLFW_PRESS) 
@@ -25,6 +26,7 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
 
 static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) 
 {
+	needsRender = 2;
 	if (dragging) 
 	{
 		int width, height;
@@ -134,6 +136,8 @@ void App::Mainloop()
 
 			editor.SetImage(image);
 			editor.Render();
+
+			needsRender = 2;
 		}
 
 		if (imageSaveQueue.size() != 0)
@@ -146,6 +150,8 @@ void App::Mainloop()
 
 			selectedImageIndex = -1;
 			editor.SetImage(nullptr);
+
+			needsRender = 2;
 		}
 		else
 		{
@@ -154,11 +160,16 @@ void App::Mainloop()
 
 		glfwPollEvents();
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (needsRender > 0)
+		{
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (selectedImageIndex != -1) editor.Render();
+			if (selectedImageIndex != -1) editor.Render();
 
-		RenderUI();
+			RenderUI();
+
+			needsRender--;
+		}
 
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR)
@@ -431,6 +442,7 @@ App::~App()
 	for (int i = 0; i < images.size(); i++)
 	{
 		glDeleteTextures(1, &images[i]->textureInID);
+		glDeleteTextures(1, &images[i]->textureOutID);
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
