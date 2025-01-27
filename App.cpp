@@ -3,10 +3,11 @@
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
-static int needsRender = 2; // to render both buffers
+static int needsRender = 3; // initialize run through + two buffers to fill in
+
 static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) 
 {
-	needsRender = 2;
+	needsRender = 3; // 1 frame for imgui updating data, 2 frames to fill in both buffers
 	if (button == GLFW_MOUSE_BUTTON_LEFT) 
 	{
 		if (action == GLFW_PRESS) 
@@ -26,7 +27,7 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
 
 static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) 
 {
-	needsRender = 2;
+	needsRender = 3; // 1 frame for imgui updating data, 2 frames to fill in both buffers
 	if (dragging) 
 	{
 		int width, height;
@@ -137,7 +138,7 @@ void App::Mainloop()
 			editor.SetImage(image);
 			editor.Render();
 
-			needsRender = 2;
+			needsRender = 2; // 2 buffers
 		}
 
 		if (imageSaveQueue.size() != 0)
@@ -146,12 +147,15 @@ void App::Mainloop()
 
 			editor.SaveImage(image);
 
+			glDeleteTextures(1, &image->textureInID);
+			glDeleteTextures(1, &image->textureOutID);
+
 			imageSaveQueue.erase(imageSaveQueue.begin());
 
 			selectedImageIndex = -1;
 			editor.SetImage(nullptr);
 
-			needsRender = 2;
+			needsRender = 2; // 2 buffers
 		}
 		else
 		{
@@ -168,6 +172,7 @@ void App::Mainloop()
 
 			RenderUI();
 
+			// Decrement amnt of buffers to render, if user changes something, this will increase
 			needsRender--;
 		}
 

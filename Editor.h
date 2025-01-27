@@ -33,6 +33,12 @@ private:
 	void ImGuiVec3Slider(const char* label, glm::vec3* value, float min, float max, float step);
 
 	void SetupUBO();
+	void UpdateUBO();
 	GLuint UBO;
-	bool needsUpdate = false;
+	bool needsUBOUpdate = false;
+
+	void SetupMaskSSBO();
+	void UpdateMaskSSBO();
+	GLuint maskSSBO;
+	bool needSSBOUpdate = false;
 };

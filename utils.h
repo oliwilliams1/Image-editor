@@ -42,11 +42,27 @@ struct ImageEditData
 		shadows(0.0f), highlights(0.0f) {}
 };
 
+struct MaskEditData
+{
+	float exposure;
+	float reinhard;
+
+	float colTemp;
+	float colTint;
+
+	float hue;
+	float saturation;
+	float invert;
+
+	float shadows;
+	float highlights;
+};
+
 struct Mask
 {
 	SBmask maskType;
 	std::string name;
-	ImageEditData editData;
+	MaskEditData editData;
 };
 
 struct Image

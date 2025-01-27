@@ -8,6 +8,7 @@ Editor::Editor() {};
 void Editor::Initialize() {
 	SetupQuad();
 	SetupUBO();
+	SetupMaskSSBO();
 
 	glGenFramebuffers(1, &editorFBO);
 
@@ -50,6 +51,16 @@ void Editor::SetupUBO()
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
 }
 
+void Editor::SetupMaskSSBO()
+{
+	glGenBuffers(1, &maskSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, maskSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaskEditData), nullptr, GL_DYNAMIC_DRAW); // prob dont need this but cant be bothered finding out
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, maskSSBO);
+}
+
 void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 {
 	this->currentImage = imagePtr;
@@ -69,9 +80,8 @@ void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &imagePtr->editData, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	UpdateUBO();
+	UpdateMaskSSBO();	
 }
 
 void Editor::Render() 
@@ -134,7 +144,7 @@ void Editor::ShowFloatAsCheckbox(float* value, const char* label)
 	if (ImGui::Checkbox(label, &checkboxValue))
 	{
 		*value = checkboxValue ? 1.0f : 0.0f;
-		needsUpdate = true;
+		needsUBOUpdate = true;
 	}
 }
 
@@ -145,7 +155,7 @@ void Editor::ImGuiFloatSlider(const char* label, float* value, float min, float 
 	ImGui::SetNextItemWidth(-FLT_MIN);
 	if (ImGui::SliderFloat(label, value, min, max, "%.2f"))
 	{
-		needsUpdate = true;
+		needsUBOUpdate = true;
 	}
 }
 
@@ -156,7 +166,7 @@ void Editor::ImGuiVec3Slider(const char* label, glm::vec3* value, float min, flo
 	ImGui::SetNextItemWidth(-FLT_MIN);
 	if (ImGui::SliderFloat3(label, &value->x, min, max, "%.2f"))
 	{
-		needsUpdate = true;
+		needsUBOUpdate = true;
 	}
 }
 
@@ -208,6 +218,8 @@ void Editor::RenderUI() {
 			Mask mask;
 			mask.name = "Mask " + std::to_string(currentImage->masks.size() + 1);
 			currentImage->masks.push_back(mask);
+			
+			needSSBOUpdate = true;
 		}
 
 		if (currentImage->masks.size() != 0)
@@ -220,6 +232,7 @@ void Editor::RenderUI() {
 					ImGui::Text(currentImage->masks[i].name.c_str());
 					if (ImGui::Button("Delete Mask"))
 					{
+						needSSBOUpdate = true;
 						currentImage->masks.erase(currentImage->masks.begin() + i);
 					}
 					ImGui::EndTabItem();
@@ -234,11 +247,37 @@ void Editor::RenderUI() {
 	ImGui::EndTabBar();
 
 	// Update Data if Needed
-	if (needsUpdate) {
-		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &currentImage->editData, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	if (needsUBOUpdate) {
+		UpdateUBO();
 	}
+
+	if (needSSBOUpdate) {
+		UpdateMaskSSBO();
+	}
+}
+
+void Editor::UpdateUBO()
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(ImageEditData), &currentImage->editData, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	needsUBOUpdate = false;
+}
+
+void Editor::UpdateMaskSSBO()
+{
+	std::cout << "Updating SSBO" << std::endl;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, maskSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaskEditData) * currentImage->masks.size(), nullptr, GL_DYNAMIC_DRAW);
+
+	for (int i = 0; i < currentImage->masks.size(); i++)
+	{
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, i * sizeof(MaskEditData), sizeof(MaskEditData), &currentImage->masks[i].editData);
+	}
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	needSSBOUpdate = false;
 }
 
 Editor::~Editor() 
