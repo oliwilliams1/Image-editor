@@ -185,8 +185,9 @@ void Editor::RenderUI() {
 
 	ImGui::SeparatorText("Adjustments");
 	ImGuiFloatSlider("Exposure", &currentImage->editData.exposure, -5.0f, 5.0f, 0.1f);
-	ShowFloatAsCheckbox(&currentImage->editData.gamutMap, "Gamut Map");
 	ShowFloatAsCheckbox(&currentImage->editData.reinhard, "Tonemap");
+	ImGuiFloatSlider("Shadows", &currentImage->editData.shadows, -1.0f, 1.0f, 0.05f);
+	ImGuiFloatSlider("Highlights", &currentImage->editData.highlights, -1.0f, 1.0f, 0.05f);
 
 	// Temperature Section
 	ImGui::SeparatorText("Temperature");

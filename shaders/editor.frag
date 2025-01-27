@@ -18,7 +18,6 @@ layout(std140) uniform ImageEditData
 	float u_Gamma; // [0 or 1] switch
 
     float u_Exposure; // [-5, 5] working ev
-    float u_GamutMap; // [0 or 1] switch
     float u_Reinhard; // [0 or 1] switch
 
     float u_ColTemp; // [-1.0, 1.0]
@@ -29,6 +28,9 @@ layout(std140) uniform ImageEditData
 	float u_Invert; // [0 or 1] switch
 
     float u_ApplyAwb; // [0 or 1] switch  
+
+    float u_Shadows; // [-1, 1]
+    float u_Highlights; // [-1, 1]
 };
 
 // https://github.com/kajott/GIPS/blob/main/shaders/Color/Exposure.glsl
@@ -51,9 +53,6 @@ vec3 ApplyExposure(vec3 inColour)
     // gamut mapping
     float minRGB = min(min(colour.r, colour.g), colour.b);
     float maxRGB = max(max(colour.r, colour.g), colour.b);
-    if ((maxRGB > 1.0) && (minRGB < maxRGB) && (u_GamutMap > 0.0)) {
-        colour = mix(colour, vec3(minRGB) + (colour - vec3(minRGB)) * vec3((1.0 - minRGB) / (maxRGB - minRGB)), u_GamutMap);
-    }
 
     return colour;
 }
@@ -78,6 +77,24 @@ vec3 ApplyHueSat(vec3 inColour)
     return colour;
 }
 
+vec3 ApplyShadowsAndHighlights(vec3 inColour) 
+{
+    vec3 colour = inColour;
+    float luminance = dot(colour, vec3(0.2126, 0.7152, 0.0722));
+
+    float shadowThreshold = 0.6;
+    float highlightThreshold = 0.4;
+
+    float shadowMask = 1.0 - smoothstep(0.0, shadowThreshold, luminance);
+
+    float highlightMask = smoothstep(highlightThreshold, 1.0, luminance);
+
+    colour *= 1.0 + shadowMask * u_Shadows * 0.5;
+    colour *= 1.0 + highlightMask * u_Highlights * 0.5;
+
+    return vec3(colour);
+}
+
 vec3 ApplyColourTempTint(vec3 inColour)
 {
     vec3 colour = inColour;
@@ -86,9 +103,9 @@ vec3 ApplyColourTempTint(vec3 inColour)
 
     vec3 tempTint;
 
-    tempTint.r = 1.0 + tempFac   * 0.75; // Avoid unatural colours
-    tempTint.g = 1.0 + u_ColTint * 0.75; // Avoid unatural colours
-    tempTint.b = 1.0 + -tempFac  * 0.75; // Avoid unatural colours
+    tempTint.r = 1.0 + tempFac   * 0.5; // Avoid unatural colours
+    tempTint.g = 1.0 + u_ColTint * 0.5; // Avoid unatural colours
+    tempTint.b = 1.0 + -tempFac  * 0.5; // Avoid unatural colours
 
     return tempTint * colour;
 }
@@ -104,6 +121,7 @@ void main()
 
     if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
     colour = ApplyExposure(colour);
+    colour = ApplyShadowsAndHighlights(colour);
     colour = ApplyColourTempTint(colour);
 
     colour = pow(colour, vec3(1.0 / u_Gamma));

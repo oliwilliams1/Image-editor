@@ -17,7 +17,6 @@ struct ImageEditData
 	float gamma; // [0.2, 5.0]
 
 	float exposure; // [-5, 5] working ev
-	float gamutMap; // [0 or 1] switch
 	float reinhard; // [0 or 1] switch
 
 	float colTemp; // [-1.0, 1.0]
@@ -29,10 +28,13 @@ struct ImageEditData
 
 	float u_ApplyAwb; // [0 or 1] switch
 
-	ImageEditData() : exposure(0.0f), gamutMap(0.0f), reinhard(0.0f), gamma(2.2f), 
-		colTemp(0.0f), colTint(0.0f),
-		hue(0.0f), saturation(1.0f), invert(0.0f), avgColour(0.0f), 
-		u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f) {}
+	float shadows; // [-1, 1]
+	float highlights; // [-1, 1]
+
+	ImageEditData() : exposure(0.0f), reinhard(0.0f), gamma(2.2f), 
+		colTemp(0.0f), colTint(0.0f), hue(0.0f), saturation(1.0f), 
+		invert(0.0f), avgColour(0.0f), u_ApplyAwb(0.0f), AWB_ScalingFactors(1.0f), 
+		shadows(0.0f), highlights(0.0f) {}
 };
 
 struct Image
