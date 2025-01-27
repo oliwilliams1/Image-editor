@@ -17,13 +17,11 @@ public:
 	void Render();
 	void RenderUI();
 	void SaveImage();
-
-	GLuint mainTexture;
+	std::shared_ptr<Image> currentImage;
 
 private:
 	void SetupQuad();
 	Shader* shader;
-	std::shared_ptr<Image> currentImage;
 
 	GLuint u_InputImageLoc;
 	GLuint editorFBO, quadVAO, quadVBO;

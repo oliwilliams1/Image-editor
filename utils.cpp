@@ -109,9 +109,9 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 		return nullptr;
 	}
 
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	GLuint textureInID;
+	glGenTextures(1, &textureInID);
+	glBindTexture(GL_TEXTURE_2D, textureInID);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -126,13 +126,25 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 
 	stbi_image_free(data);
 
-	glm::vec3 avgColour = GetAvgColour(textureID, maxLevel);
+	glm::vec3 avgColour = GetAvgColour(textureInID, maxLevel);
+
+	GLuint textureOutID;
+	glGenTextures(1, &textureOutID);
+	glBindTexture(GL_TEXTURE_2D, textureOutID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR)
 	{
-		std::cout << "OpenGL Error: " << error << " for texture ID: " << textureID << std::endl;
-		glDeleteTextures(1, &textureID);
+		std::cout << "OpenGL Error: " << error << " for texture ID: " << textureInID << std::endl;
+		glDeleteTextures(1, &textureInID);
+		glDeleteTextures(1, &textureOutID);
 		return nullptr; 
 	}
 
@@ -149,7 +161,8 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 	AWB_ScalingFactors.b = greyValue / avgColour.b;
 
 	auto imagePtr = std::make_shared<Image>();
-	imagePtr->textureID = textureID;
+	imagePtr->textureInID = textureInID;
+	imagePtr->textureOutID = textureOutID;
 	imagePtr->filePath = filePath;
 	imagePtr->width = width;
 	imagePtr->height = height;

@@ -58,18 +58,7 @@ void Editor::SetImage(std::shared_ptr<Image> imagePtr)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, editorFBO);
 
-	if (mainTexture != 0)
-	{
-		glDeleteTextures(1, &mainTexture);
-		mainTexture = 0;
-	}
-
-	glGenTextures(1, &mainTexture);
-	glBindTexture(GL_TEXTURE_2D, mainTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, imagePtr->width, imagePtr->height, 0, GL_RGBA, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mainTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imagePtr->textureOutID, 0);
 
 	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers(1, drawBuffers);
@@ -92,10 +81,10 @@ void Editor::Render()
 	glViewport(0, 0, currentImage->width, currentImage->height);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mainTexture);
+	glBindTexture(GL_TEXTURE_2D, currentImage->textureOutID);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, currentImage->textureID);
+	glBindTexture(GL_TEXTURE_2D, currentImage->textureInID);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -121,7 +110,7 @@ void Editor::SaveImage()
 		format = GL_RGBA;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, mainTexture);
+	glBindTexture(GL_TEXTURE_2D, currentImage->textureOutID);
 	glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, data);
 
 	std::string fileName = currentImage->filePath;

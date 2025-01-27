@@ -39,7 +39,8 @@ struct ImageEditData
 
 struct Image
 {
-	GLuint textureID;
+	GLuint textureInID;
+	GLuint FBO, textureOutID;
 	std::string filePath;
 	int width, height, channels;
 	ImageEditData editData;

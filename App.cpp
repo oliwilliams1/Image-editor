@@ -276,7 +276,7 @@ void App::RenderUI()
 		int offset = (viewportWidth - x) / 2;
 
 		ImGui::SameLine(offset);
-		ImGui::Image((ImTextureID)(intptr_t)editor.mainTexture, ImVec2(x, y));
+		ImGui::Image((ImTextureID)(intptr_t)editor.currentImage->textureOutID, ImVec2(x, y));
 	}
 
 	ImGui::End();
@@ -302,7 +302,7 @@ void App::RenderUI()
 		float aspectRatio = (float)images[i]->width / (float)images[i]->height;
 		int desiredWidth = desiredHeight * aspectRatio;
 
-		ImGui::Image((ImTextureID)(intptr_t)images[i]->textureID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+		ImGui::Image((ImTextureID)(intptr_t)images[i]->textureOutID, ImVec2(desiredWidth, desiredHeight), ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		if (ImGui::IsItemClicked()) {
 			selectedImageIndex = i;
@@ -416,7 +416,7 @@ App::~App()
 {
 	for (int i = 0; i < images.size(); i++)
 	{
-		glDeleteTextures(1, &images[i]->textureID);
+		glDeleteTextures(1, &images[i]->textureInID);
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
