@@ -125,13 +125,11 @@ void main()
 
     vec3 colour = imageColour.rgb;
 
-    colour = pow(colour, vec3(u_Gamma));
-    if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
-    colour = pow(colour, vec3(1.0 / u_Gamma));
-
     colour = ApplyExposure(colour);
 	colour = ApplyWhiteBalance(colour);
     colour = ApplyHueSat(colour);
+
+    if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
 
     FragColor = vec4(colour, imageColour.a);
 }

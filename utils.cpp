@@ -141,7 +141,12 @@ std::shared_ptr<Image> LoadImage(const std::string& filePath)
 	avgColour.g = std::max(0.01f, avgColour.g);
 	avgColour.b = std::max(0.01f, avgColour.b);
 
-	glm::vec3 AWB_ScalingFactors = glm::vec3(avgColour.g / avgColour.r, avgColour.b / avgColour.r, avgColour.b / avgColour.g);
+	float greyValue = (avgColour.r + avgColour.g + avgColour.b) / 3.0f;
+
+	glm::vec3 AWB_ScalingFactors = glm::vec3(1.0f);
+	AWB_ScalingFactors.r = greyValue / avgColour.r;
+	AWB_ScalingFactors.g = greyValue / avgColour.g;
+	AWB_ScalingFactors.b = greyValue / avgColour.b;
 
 	auto imagePtr = std::make_shared<Image>();
 	imagePtr->textureID = textureID;
