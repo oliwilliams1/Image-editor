@@ -31,12 +31,16 @@ layout(std140) uniform ImageEditData
 
     float u_Shadows; // [-1, 1]
     float u_Highlights; // [-1, 1]
+
+    float u_Contrast; // [-1, 1]
 };
 
 struct MaskData 
 {
     float exposure;
     float reinhard;
+
+    float contrast;
 
     float colTemp;
     float colTint;
@@ -98,6 +102,17 @@ vec3 ApplyHueSat(vec3 inColour, float inHue, float sat, float invert)
     return colour;
 }
 
+vec3 ApplyContrast(vec3 inColour, float contrast)
+{
+    vec3 colour = inColour;
+
+    contrast += 1.0 * 0.5;
+
+    colour = (colour - 0.5) * contrast + 0.5;
+
+    return colour;
+}
+
 vec3 ApplyShadowsAndHighlights(vec3 inColour, float shadows, float highlights)
 {
     vec3 colour = inColour;
@@ -142,6 +157,7 @@ void main()
 
     if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
     colour = ApplyExposure(colour, u_Exposure, u_Reinhard);
+    colour = ApplyContrast(colour, u_Contrast);
     colour = ApplyShadowsAndHighlights(colour, u_Shadows, u_Highlights);
     colour = ApplyColourTempTint(colour, u_ColTemp, u_ColTint);
 
@@ -153,6 +169,7 @@ void main()
 
         colour = pow(colour, vec3(u_Gamma));
         colour = ApplyExposure(colour, maskData[i].exposure, maskData[i].reinhard);
+        colour = ApplyContrast(colour, maskData[i].contrast);
         colour = ApplyShadowsAndHighlights(colour, maskData[i].shadows, maskData[i].highlights);
 		colour = ApplyColourTempTint(colour, maskData[i].colTemp, maskData[i].colTint);
 		colour = pow(colour, vec3(1.0 / u_Gamma));

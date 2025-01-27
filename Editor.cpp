@@ -192,6 +192,7 @@ void Editor::RenderUI() {
 		ImGui::SeparatorText("Adjustments");
 		ImGuiFloatSlider("Exposure", &currentImage->editData.exposure, -5.0f, 5.0f, 0.1f);
 		ShowFloatAsCheckbox(&currentImage->editData.reinhard, "Tonemap");
+		ImGuiFloatSlider("Contrast", &currentImage->editData.contrast, 0.0f, 1.0f, 0.05f);
 		ImGuiFloatSlider("Shadows", &currentImage->editData.shadows, -1.0f, 1.0f, 0.05f);
 		ImGuiFloatSlider("Highlights", &currentImage->editData.highlights, -1.0f, 1.0f, 0.05f);
 
@@ -246,6 +247,7 @@ void Editor::RenderUI() {
 					ImGui::SeparatorText("Adjustments");
 					ImGuiFloatSlider("Exposure", &currentImage->masks[i].editData.exposure, -5.0f, 5.0f, 0.1f, true);
 					ShowFloatAsCheckbox(&currentImage->masks[i].editData.reinhard, "Tonemap", true);
+					ImGuiFloatSlider("Contrast", &currentImage->masks[i].editData.contrast, 0.0f, 1.0f, 0.05f, true);
 					ImGuiFloatSlider("Shadows", &currentImage->masks[i].editData.shadows, -1.0f, 1.0f, 0.05f, true);
 					ImGuiFloatSlider("Highlights", &currentImage->masks[i].editData.highlights, -1.0f, 1.0f, 0.05f, true);
 

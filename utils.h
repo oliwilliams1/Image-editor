@@ -37,12 +37,16 @@ struct ImageEditData
 
 	float shadows = 0.0f; // [-1, 1]
 	float highlights = 0.0f; // [-1, 1]
+
+	float contrast = 0.5f;
 };
 
 struct MaskEditData
 {
 	float exposure = 0.0f;
 	float reinhard = 0.0f;
+
+	float contrast = 0.5f;
 
 	float colTemp = 0.0f;
 	float colTint = 0.0f;
