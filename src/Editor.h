@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <imgui.h>
 #include "utils.h"
-#include "shader.h"
+#include "Shader.h"
 
 class Editor
 {

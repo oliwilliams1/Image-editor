@@ -1,5 +1,4 @@
 #pragma once
-#define GLFW_DLL // The whole program is dependant on this
 
 #include <iostream>
 #include <filesystem>
@@ -31,12 +30,12 @@ private:
 	std::vector<std::string> imagePathQueue;
 	std::vector<std::shared_ptr<Image>> images;
 	std::vector<std::shared_ptr<Image>> imageSaveQueue;
-	int wishImagesAmnt;
-	int saveImagesAmnt;
+	int wishImagesAmnt = 0;
+	int saveImagesAmnt = 0;
 
 	int selectedImageIndex;
 
-	bool fileWindowOpen;
+	bool fileWindowOpen = false;
 	int screenSizeX, screenSizeY;
 	int windowWidth, windowHeight;
 	int smallWindowWidth, smallWindowHeight;
