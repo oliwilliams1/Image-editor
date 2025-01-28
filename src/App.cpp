@@ -372,7 +372,7 @@ void App::RenderUI()
 		if (ImGui::Selectable("Open folder"))
 		{
 			fileWindowOpen = false;
-			nfdchar_t* outPath = NULL;
+			/*nfdchar_t* outPath = NULL;
 			nfdresult_t result = NFD_PickFolder(NULL, &outPath);
 
 			if (result == NFD_OKAY)
@@ -389,7 +389,7 @@ void App::RenderUI()
 			else
 			{
 				std::cerr << "Error: " << NFD_GetError() << std::endl;
-			}
+			}*/
 		}
 
 		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 

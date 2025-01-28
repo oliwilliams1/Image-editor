@@ -21,6 +21,9 @@ x86/
 # Ignore specific file types
 *.ini
 *.cmake
+*.a
+Makefile
+SableImageEditor
 
 # Git
 .git/
