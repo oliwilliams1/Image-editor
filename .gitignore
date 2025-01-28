@@ -10,6 +10,9 @@ CMakeFiles/
 CMakeCache.txt
 Build/
 Release/
+Debug/
+imgui.dir/
+nfd.dir/
 SableImageEditor.dir/
 _deps/
 x64/

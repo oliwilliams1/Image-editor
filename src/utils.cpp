@@ -94,7 +94,7 @@ void SetupImGuiStyle() {
 	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF("Roboto-Black.ttf", 16.0f);
+	io.Fonts->AddFontFromFileTTF("resources/Roboto-Black.ttf", 16.0f);
 }
 
 std::shared_ptr<Image> LoadImage(const std::string& filePath)
