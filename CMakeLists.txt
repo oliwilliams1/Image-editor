@@ -55,10 +55,10 @@ add_library(imgui ${IMGUI_SOURCE} ${IMGUI_BACKENDS_SOURCE})
 set(STB_DIR "${CMAKE_SOURCE_DIR}/dependencies/stb")
 include_directories(${STB_DIR})
 
-# Native File Dialog
+# NFD
 set(NFD_DIR "${CMAKE_SOURCE_DIR}/dependencies/nfd")
 include_directories("${NFD_DIR}/src/include")
-file(GLOB NFD_SOURCE "${NFD_DIR}/src/*.cpp" "${NFD_DIR}/src/*.h")
+file(GLOB NFD_SOURCE "${NFD_DIR}/src/nfd_common.c" "${NFD_DIR}/src/nfd_common.h" "${NFD_DIR}/src/common.h" "${NFD_DIR}/src/simple_exec.h" "${NFD_DIR}/src/nfd_win.cpp")
 add_library(nfd ${NFD_SOURCE})
 
 # Source files

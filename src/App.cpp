@@ -372,7 +372,24 @@ void App::RenderUI()
 		if (ImGui::Selectable("Open folder"))
 		{
 			fileWindowOpen = false;
-			
+			nfdchar_t* outPath = NULL;
+			nfdresult_t result = NFD_PickFolder(NULL, &outPath);
+
+			if (result == NFD_OKAY)
+			{
+				std::cout << "User selected folder: " << outPath << std::endl;
+
+				std::string folderPath = outPath;
+				OpenFolderContents(folderPath);
+			} 
+			else if (result == NFD_CANCEL) 
+			{
+				std::cout << "User cancelled folder selection" << std::endl;
+			}
+			else
+			{
+				std::cerr << "Error: " << NFD_GetError() << std::endl;
+			}
 		}
 
 		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 
