@@ -1,9 +1,13 @@
 ﻿#include "App.h"
+#include <GLFW/glfw3.h>
+#include <string>
 
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
-static int needsRender = 3; // initialize run through + two buffers to fill in
+static int needsRender = 10; // initialize run through + two buffers to fill in + 7 for hyprland animations
+static bool hyprland = false;
+static App* appInstance;
 
 static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) 
 {
@@ -41,18 +45,51 @@ static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 		int newX = x + static_cast<int>(xpos - offsetX);
 		int newY = y + static_cast<int>(ypos - offsetY);
 
-		glfwSetWindowPos(window, newX, newY);
+		if (!hyprland)
+		{
+			glfwSetWindowPos(window, newX, newY);
+		}
 	}
+}
+
+static void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	needsRender = 3;
+}
+
+static void resizeCallback(GLFWwindow* window, int width, int height) {
+    appInstance->windowWidth = width;
+	appInstance->windowHeight = height;
+}
+
+// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
 }
 
 App::App() 
 {
+	appInstance = this;
 	smallWindowWidth = 1600;
 	smallWindowHeight = 900;
 	windowWidth = smallWindowWidth;
 	windowHeight = smallWindowHeight;
 
 	selectedImageIndex = -1;
+
+	if (exec("hyprctl").substr(0, 5) == "usage")
+	{
+		system("hyprctl dispatch window floating");
+	}
 
 	InitWindow();
 	InitImGui();
@@ -102,7 +139,8 @@ void App::InitWindow()
 
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, cursorPosCallback);
-
+	glfwSetFramebufferSizeCallback(window, resizeCallback);
+	glfwSetKeyCallback(window, keyboardCallback);
 	GLenum err = glewInit();
 	if (err != GLEW_OK) 
 	{
@@ -242,11 +280,16 @@ void App::RenderUI()
 
 	if (windowWidth == smallWindowWidth)
 	{
-		if (ImGui::Button("+", ImVec2(24, 24))) {
+		if (ImGui::Button("+", ImVec2(24, 24))) 
+		{
 			windowWidth = screenSizeX;
 			windowHeight = screenSizeY;
-			glfwSetWindowPos(window, 0, 0);
-			glfwSetWindowSize(window, windowWidth, windowHeight);
+
+			if (!hyprland)
+			{
+				glfwSetWindowPos(window, 0, 0);
+				glfwSetWindowSize(window, windowWidth, windowHeight);
+			}
 		}
 	}
 	else
@@ -255,8 +298,12 @@ void App::RenderUI()
 		{
 			windowWidth = smallWindowWidth;
 			windowHeight = smallWindowHeight;
-			glfwSetWindowPos(window, 0, 0);
-			glfwSetWindowSize(window, windowWidth, windowHeight);
+			std::cout << hyprland << std::endl;
+			if (!hyprland)
+			{
+				glfwSetWindowPos(window, 0, 0);
+				glfwSetWindowSize(window, windowWidth, windowHeight);
+			}
 		}
 	}
 
@@ -360,7 +407,7 @@ void App::RenderUI()
 	{
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 15 - ImGui::GetStyle().WindowPadding.y);
 
-		ImGui::Text("Loaded images: %i", images.size());
+		ImGui::Text("Loaded images: %i", (int)images.size());
 	}
 
 	ImGui::End();

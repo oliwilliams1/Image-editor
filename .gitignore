@@ -14,7 +14,7 @@ Debug/
 imgui.dir/
 nfd.dir/
 SableImageEditor.dir/
-_deps/
+dependencies/
 x64/
 x86/
 
