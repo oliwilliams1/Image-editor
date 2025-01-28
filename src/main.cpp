@@ -1,7 +1,8 @@
-#include <iostream>
+#include "app.h"
 
 int main() 
 {
-	std::cout << "hello stupid cmake" << std::endl;
+	App app = App();
+	app.Mainloop();
 	return 0;
 }

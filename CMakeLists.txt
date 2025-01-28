@@ -23,7 +23,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-# GLFW
+# GLFW (Static)
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -34,7 +34,6 @@ FetchContent_MakeAvailable(glfw)
 FetchContent_Declare(
     glew
     GIT_REPOSITORY https://github.com/nigels-com/glew.git
-    GIT_TAG master
 )
 FetchContent_MakeAvailable(glew)
 
@@ -45,21 +44,27 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
+# Native file dialog
+FetchContent_Declare(
+    nfd
+    GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+)
+FetchContent_MakeAvailable(nfd)
+
 # Source files
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 
 # Add the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-include_directories(${GLEW_INCLUDE_DIRS})
-
 # Link libraries
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} 
     ${OPENGL_LIBRARIES} 
     glfw
     ${GLEW_LIBRARIES}
     glm
     imgui
+    nfd
 )
 
 # Set the output directory to the project root
