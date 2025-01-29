@@ -1,6 +1,4 @@
 ﻿#include "App.h"
-#include <GLFW/glfw3.h>
-#include <string>
 
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
@@ -62,20 +60,6 @@ static void resizeCallback(GLFWwindow* window, int width, int height) {
 	appInstance->windowHeight = height;
 }
 
-// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
-
 App::App() 
 {
 	appInstance = this;
@@ -85,11 +69,6 @@ App::App()
 	windowHeight = smallWindowHeight;
 
 	selectedImageIndex = -1;
-
-	if (exec("hyprctl").substr(0, 5) == "usage")
-	{
-		system("hyprctl dispatch window floating");
-	}
 
 	InitWindow();
 	InitImGui();
@@ -247,6 +226,30 @@ void App::OpenFolderContents(const std::string& folderPath)
 	}
 
 	wishImagesAmnt += imagePathQueue.size();
+}
+
+void App::OpenFile(const std::string& filePath)
+{
+	std::vector<std::string> supportedFileTypes = { ".png", ".jpg", ".jpeg", ".bmp" };
+
+	std::filesystem::path path(filePath);
+
+	if (!std::filesystem::exists(path)) {
+		std::cerr << "File does not exist: " << filePath << std::endl;
+		return;
+	}
+
+	std::string extension = path.extension().string();
+
+	for (const auto& supportedType : supportedFileTypes) {
+		if (extension == supportedType) {
+			imagePathQueue.push_back(filePath);
+			wishImagesAmnt++;
+			return;
+		}
+	}
+
+	std::cerr << "Could not open file: " << filePath << ". Unsupported file type" << std::endl;
 }
 
 void App::RenderUI()
@@ -421,7 +424,14 @@ void App::RenderUI()
 			fileWindowOpen = false;
 			IGFD::FileDialogConfig config;
 			config.path = ".";
-			ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a File", ".*,.png,.gif,.jpg,.jpeg,.bmp", config);
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseFolder", " Choose a Folder", ".*,.png,.gif,.jpg,.jpeg,.bmp", config);
+		}
+
+		if (ImGui::Selectable("Open file"))
+		{
+			fileWindowOpen = false;
+			IGFD::FileDialogConfig config;
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseFile", " Choose a File", ".*,.png,.gif,.jpg,.jpeg,.bmp", config);
 		}
 
 		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 
@@ -463,12 +473,22 @@ void App::RenderUI()
 		ImGui::End();
 	}
 
-	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+	if (ImGuiFileDialog::Instance()->Display("ChooseFolder"))
 	{
 		if (ImGuiFileDialog::Instance()->IsOk())
 		{
-			std::string filePathName = ImGuiFileDialog::Instance()->GetCurrentPath();
+			std::string folderPath = ImGuiFileDialog::Instance()->GetCurrentPath();
+			OpenFolderContents(folderPath);
+		}
+		ImGuiFileDialog::Instance()->Close();
+	}
+
+	if (ImGuiFileDialog::Instance()->Display("ChooseFile"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+		{
 			std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+			OpenFile(filePath);
 		}
 		ImGuiFileDialog::Instance()->Close();
 	}

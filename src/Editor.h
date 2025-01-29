@@ -3,7 +3,6 @@
 #include <memory>
 #include <GL/glew.h>
 #include <imgui.h>
-#include <ImGuiFileDialog.h>
 #include "utils.h"
 #include "Shader.h"
 

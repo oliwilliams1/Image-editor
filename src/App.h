@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <ImGuiFileDialog.h>
 
 #include "Editor.h"
 #include "utils.h"
@@ -43,4 +44,5 @@ private:
 	void InitImGui();
 	void RenderUI();
 	void OpenFolderContents(const std::string& folderPath);
+	void OpenFile(const std::string& filePath);
 };
