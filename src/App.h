@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <vector>
+#include <array>
 #include <memory>
 #include <string>
 #include <GL/glew.h>
@@ -20,6 +21,7 @@ class App
 public:
 	App();
 	void Mainloop();
+	int windowWidth, windowHeight;
 	~App();
 
 private:
@@ -36,7 +38,6 @@ private:
 
 	bool fileWindowOpen = false;
 	int screenSizeX, screenSizeY;
-	int windowWidth, windowHeight;
 	int smallWindowWidth, smallWindowHeight;
 	void InitWindow();
 	void InitImGui();
