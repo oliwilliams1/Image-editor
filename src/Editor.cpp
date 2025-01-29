@@ -270,8 +270,8 @@ void Editor::RenderUI() {
 					if (currentImage->masks[i].maskType == SABLE_LUMINANCE_MASK)
 					{
 						ImGuiFloatSlider("Luminance mask lower", &currentImage->masks[i].editData.luminanceMaskLower,  0.0f, 1.0f, 0.05f, true);
-						ImGuiFloatSlider("Luminance mask mid",   &currentImage->masks[i].editData.luminanceMaskMiddle, 0.0f, 1.0f, 0.05f, true);
 						ImGuiFloatSlider("Luminance mask upper", &currentImage->masks[i].editData.luminanceMaskUpper , 0.0f, 1.0f, 0.05f, true);
+						ShowFloatAsCheckbox(&currentImage->masks[i].editData.luminanceMaskInvert, "Invert luminance mask", true);
 					}
 
 					// Adjustments

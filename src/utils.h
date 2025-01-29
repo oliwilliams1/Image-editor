@@ -50,8 +50,8 @@ struct MaskEditData
 	float maskType = 0.0f;
 
 	float luminanceMaskLower = 0.0f;
-	float luminanceMaskMiddle = 0.5f;
 	float luminanceMaskUpper = 1.0f;
+	float luminanceMaskInvert = 0.0f;
 
 	float exposure = 0.0f;
 	float reinhard = 0.0f;

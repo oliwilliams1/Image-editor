@@ -42,9 +42,9 @@ struct MaskData
 
     float maskType; // [0 == no mask, 1 == colour mask, 2 == lum mask]
 
-    float lumMaskUpper;
-    float lumMaskMid;
 	float lumMaskLower;
+    float lumMaskUpper;
+    float lumMaskInv;
 
     float exposure;
     float reinhard;
@@ -157,7 +157,8 @@ vec3 ApplyColourTempTint(vec3 inColour, float colTemp, float colTint)
     return (tempTint * colour) - inColour;
 }
 
-float ColourMaskFac(vec3 inColour, vec3 maskColour, float threshold) {
+float ColourMaskFac(vec3 inColour, vec3 maskColour, float threshold) 
+{
     float d = length(inColour - maskColour);
     
     float maxDistance = 1.732; // sqrt(3)
@@ -170,6 +171,19 @@ float ColourMaskFac(vec3 inColour, vec3 maskColour, float threshold) {
         return 0.0;
     } else {
         return (similarity - threshold) / (1.0 - threshold);
+    }
+}
+
+float LumaMaskFac(vec3 inColour, float lowerLum, float highLum) 
+{
+    float luminance = dot(inColour, vec3(0.2126, 0.7152, 0.0722));
+
+    if (luminance < lowerLum) {
+        return 0.0;
+    } else if (luminance > highLum) {
+        return 1.0;
+    } else {
+        return (luminance - lowerLum) / (highLum - lowerLum);
     }
 }
 
@@ -204,6 +218,18 @@ void main()
 			maskFac = ColourMaskFac(imageColour.rgb, colourMask, maskData[i].colourMaskThreshold);
         }
 
+        if (maskData[i].maskType == 2) // luma
+            {
+            if (maskData[i].lumMaskInv > 0.5)
+            {
+                maskFac = 1.0 - LumaMaskFac(imageColour.rgb, maskData[i].lumMaskLower, maskData[i].lumMaskUpper);
+            } 
+            else
+            {
+                maskFac = LumaMaskFac(imageColour.rgb, maskData[i].lumMaskLower, maskData[i].lumMaskUpper);
+            }
+        }
+
 		colour += maskFac * ApplyHueSat(colour, maskData[i].hue, maskData[i].saturation, maskData[i].invert);
 
         colour = pow(colour, vec3(u_Gamma));
@@ -227,6 +253,18 @@ void main()
                 vec3 colourMask = vec3(maskData[i].colourMask[0], maskData[i].colourMask[1], maskData[i].colourMask[2]);
 
 			    maskFac = ColourMaskFac(imageColour.rgb, colourMask, maskData[i].colourMaskThreshold);
+            }
+
+            if (maskData[i].maskType == 2) // luma
+            {
+                if (maskData[i].lumMaskInv > 0.5)
+                {
+                    maskFac = 1.0 - LumaMaskFac(imageColour.rgb, maskData[i].lumMaskLower, maskData[i].lumMaskUpper);
+                } 
+                else
+                {
+                    maskFac = LumaMaskFac(imageColour.rgb, maskData[i].lumMaskLower, maskData[i].lumMaskUpper);
+                }
             }
 
             colour = vec3(maskFac);
