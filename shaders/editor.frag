@@ -90,7 +90,7 @@ vec3 ApplyExposure(vec3 inColour, float ev, float tonemapping)
     float minRGB = min(min(colour.r, colour.g), colour.b);
     float maxRGB = max(max(colour.r, colour.g), colour.b);
 
-    return colour;
+    return colour - inColour;
 }
 
 vec3 ApplyHueSat(vec3 inColour, float inHue, float sat, float invert)
@@ -110,7 +110,7 @@ vec3 ApplyHueSat(vec3 inColour, float inHue, float sat, float invert)
 
     colour = vec3(luma) + chroma * sat;
 
-    return colour;
+    return colour - inColour;
 }
 
 vec3 ApplyContrast(vec3 inColour, float contrast)
@@ -121,7 +121,7 @@ vec3 ApplyContrast(vec3 inColour, float contrast)
 
     colour = (colour - 0.5) * contrast + 0.5;
 
-    return colour;
+    return colour - inColour;
 }
 
 vec3 ApplyShadowsAndHighlights(vec3 inColour, float shadows, float highlights)
@@ -139,7 +139,7 @@ vec3 ApplyShadowsAndHighlights(vec3 inColour, float shadows, float highlights)
     colour *= 1.0 + shadowMask * shadows * 0.5;
     colour *= 1.0 + highlightMask * highlights * 0.5;
 
-    return vec3(colour);
+    return vec3(colour) - inColour;
 }
 
 vec3 ApplyColourTempTint(vec3 inColour, float colTemp, float colTint)
@@ -154,7 +154,7 @@ vec3 ApplyColourTempTint(vec3 inColour, float colTemp, float colTint)
     tempTint.g = 1.0 + colTint * 0.5; // Avoid unatural colours
     tempTint.b = 1.0 + -tempFac  * 0.5; // Avoid unatural colours
 
-    return tempTint * colour;
+    return (tempTint * colour) - inColour;
 }
 
 float ColourMaskFac(vec3 inColour, vec3 maskColour, float threshold) {
@@ -178,17 +178,20 @@ void main()
 	vec4 imageColour = texture(u_InputImage, UV);
 
     vec3 colour = imageColour.rgb;
-    colour = ApplyHueSat(colour, u_Hue, u_Saturation, u_Invert);
     
-    colour = pow(colour, vec3(u_Gamma));
+    colour += ApplyHueSat(colour, u_Hue, u_Saturation, u_Invert);
 
+    colour = pow(colour, vec3(u_Gamma));
     if (u_ApplyAwb > 0.5) {colour.rgb *= u_AWB_ScalingFactors;}
-    colour = ApplyExposure(colour, u_Exposure, u_Reinhard);
-    colour = ApplyContrast(colour, u_Contrast);
-    colour = ApplyShadowsAndHighlights(colour, u_Shadows, u_Highlights);
-    colour = ApplyColourTempTint(colour, u_ColTemp, u_ColTint);
+
+    colour += ApplyExposure(colour, u_Exposure, u_Reinhard);
+    colour += ApplyContrast(colour, u_Contrast);
+    colour += ApplyShadowsAndHighlights(colour, u_Shadows, u_Highlights);
+    colour += ApplyColourTempTint(colour, u_ColTemp, u_ColTint);
 
     colour = pow(colour, vec3(1.0 / u_Gamma));
+
+    colour = clamp(colour, 0.0, 1.0);
 
     for (int i = 0; i < u_NumMasks; i++) 
     {
@@ -201,14 +204,16 @@ void main()
 			maskFac = ColourMaskFac(imageColour.rgb, colourMask, maskData[i].colourMaskThreshold);
         }
 
-		colour = ApplyHueSat(colour, maskData[i].hue, maskData[i].saturation, maskData[i].invert);
+		colour += maskFac * ApplyHueSat(colour, maskData[i].hue, maskData[i].saturation, maskData[i].invert);
 
         colour = pow(colour, vec3(u_Gamma));
-        colour = ApplyExposure(colour, maskData[i].exposure, maskData[i].reinhard);
-        colour = ApplyContrast(colour, maskData[i].contrast);
-        colour = ApplyShadowsAndHighlights(colour, maskData[i].shadows, maskData[i].highlights);
-		colour = ApplyColourTempTint(colour, maskData[i].colTemp, maskData[i].colTint);
+        colour += maskFac * ApplyExposure(colour, maskData[i].exposure, maskData[i].reinhard);
+        colour += maskFac * ApplyContrast(colour, maskData[i].contrast);
+        colour += maskFac * ApplyShadowsAndHighlights(colour, maskData[i].shadows, maskData[i].highlights);
+		colour += maskFac * ApplyColourTempTint(colour, maskData[i].colTemp, maskData[i].colTint);
 		colour = pow(colour, vec3(1.0 / u_Gamma));
+
+        colour = clamp(colour, 0.0, 1.0);
     }
 
     for (int i = 0; i < u_NumMasks; i++)
