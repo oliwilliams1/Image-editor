@@ -372,24 +372,9 @@ void App::RenderUI()
 		if (ImGui::Selectable("Open folder"))
 		{
 			fileWindowOpen = false;
-			/*nfdchar_t* outPath = NULL;
-			nfdresult_t result = NFD_PickFolder(NULL, &outPath);
-
-			if (result == NFD_OKAY)
-			{
-				std::cout << "User selected folder: " << outPath << std::endl;
-
-				std::string folderPath = outPath;
-				OpenFolderContents(folderPath);
-			} 
-			else if (result == NFD_CANCEL) 
-			{
-				std::cout << "User cancelled folder selection" << std::endl;
-			}
-			else
-			{
-				std::cerr << "Error: " << NFD_GetError() << std::endl;
-			}*/
+			IGFD::FileDialogConfig config;
+			config.path = ".";
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a File", ".*,.png,.gif,.jpg,.jpeg,.bmp", config);
 		}
 
 		if (selectedImageIndex >= 0 && selectedImageIndex < images.size()) 
@@ -429,6 +414,16 @@ void App::RenderUI()
 		}
 
 		ImGui::End();
+	}
+
+	if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+		{
+			std::string filePathName = ImGuiFileDialog::Instance()->GetCurrentPath();
+			std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+		}
+		ImGuiFileDialog::Instance()->Close();
 	}
 
 	ImGui::Render();

@@ -51,6 +51,13 @@ file(GLOB IMGUI_BACKENDS_SOURCE
 # Create the ImGui library, including both ImGui and backend source files
 add_library(imgui ${IMGUI_SOURCE} ${IMGUI_BACKENDS_SOURCE})
 
+# ImGui File Dialog
+set(IMGUI_FILE_DIALOG_DIR "${CMAKE_SOURCE_DIR}/dependencies/imgui-file-dialog")
+include_directories(${IMGUI_FILE_DIALOG_DIR})
+file(GLOB IMGUI_FILE_DIALOG_SOURCE "${IMGUI_FILE_DIALOG_DIR}/*.cpp" "${IMGUI_FILE_DIALOG_DIR}/*.h")
+
+add_library(imguiFileDialog ${IMGUI_FILE_DIALOG_SOURCE})
+
 # Stb Image
 set(STB_DIR "${CMAKE_SOURCE_DIR}/dependencies/stb")
 include_directories(${STB_DIR})
@@ -67,8 +74,8 @@ target_link_libraries(${PROJECT_NAME}
     glew
     glfw
     imgui
+    imguiFileDialog
 )
 
-# Set the output directory to the project root
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/shaders"   DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
