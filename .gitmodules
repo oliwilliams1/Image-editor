@@ -17,6 +17,7 @@
 [submodule "stb"]
     path = dependencies/stb
     url = https://github.com/nothings/stb.git
-[submodule "dependencies/imgui-file-dialog"]
+
+[submodule "imgui-file-dialog"]
 	path = dependencies/imgui-file-dialog
 	url = https://github.com/aiekick/ImGuiFileDialog
