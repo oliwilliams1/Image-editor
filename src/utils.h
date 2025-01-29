@@ -9,8 +9,9 @@
 
 using SBmask = int;
 
-constexpr SBmask SABLE_COLOUR_MASK = 0x000000;
-constexpr SBmask SABLE_LUMINANCE_MASK = 0x000001;
+constexpr SBmask SABLE_NO_MASK = 0x000000;
+constexpr SBmask SABLE_COLOUR_MASK = 0x000001;
+constexpr SBmask SABLE_LUMINANCE_MASK = 0x000002;
 
 struct ImageEditData
 {
@@ -43,6 +44,15 @@ struct ImageEditData
 
 struct MaskEditData
 {
+	glm::vec3 colourMask = glm::vec3(1.0f);
+	float colourMaskThreshold = 0.5f;
+
+	float maskType = 0.0f;
+
+	float luminanceMaskLower = 0.0f;
+	float luminanceMaskMiddle = 0.5f;
+	float luminanceMaskUpper = 1.0f;
+
 	float exposure = 0.0f;
 	float reinhard = 0.0f;
 
@@ -57,11 +67,13 @@ struct MaskEditData
 
 	float shadows = 0.0f;
 	float highlights = 0.0f;
+
+	float viewMask = 0.0f;
 };
 
 struct Mask
 {
-	SBmask maskType;
+	SBmask maskType = SABLE_NO_MASK;
 	std::string name;
 	MaskEditData editData;
 };

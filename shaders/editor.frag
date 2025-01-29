@@ -37,6 +37,15 @@ layout(std140) uniform ImageEditData
 
 struct MaskData 
 {
+    float colourMask[3];
+    float colourMaskThreshold;
+
+    float maskType; // [0 == no mask, 1 == colour mask, 2 == lum mask]
+
+    float lumMaskUpper;
+    float lumMaskMid;
+	float lumMaskLower;
+
     float exposure;
     float reinhard;
 
@@ -51,6 +60,8 @@ struct MaskData
 
     float shadows;
     float highlights;
+
+    float viewMask;
 };
 
 layout(std430, binding = 1) buffer MaskDataBuffer
@@ -146,6 +157,22 @@ vec3 ApplyColourTempTint(vec3 inColour, float colTemp, float colTint)
     return tempTint * colour;
 }
 
+float ColourMaskFac(vec3 inColour, vec3 maskColour, float threshold) {
+    float d = length(inColour - maskColour);
+    
+    float maxDistance = 1.732; // sqrt(3)
+
+    float similarity = 1.0 - (d / maxDistance);
+    
+    similarity = clamp(similarity, 0.0, 1.0);
+
+    if (similarity < threshold) {
+        return 0.0;
+    } else {
+        return (similarity - threshold) / (1.0 - threshold);
+    }
+}
+
 void main()
 {
 	vec4 imageColour = texture(u_InputImage, UV);
@@ -165,6 +192,15 @@ void main()
 
     for (int i = 0; i < u_NumMasks; i++) 
     {
+        float maskFac = 1.0;
+
+        if (maskData[i].maskType == 1)
+        {
+            vec3 colourMask = vec3(maskData[i].colourMask[0], maskData[i].colourMask[1], maskData[i].colourMask[2]);
+
+			maskFac = ColourMaskFac(imageColour.rgb, colourMask, maskData[i].colourMaskThreshold);
+        }
+
 		colour = ApplyHueSat(colour, maskData[i].hue, maskData[i].saturation, maskData[i].invert);
 
         colour = pow(colour, vec3(u_Gamma));
@@ -173,6 +209,23 @@ void main()
         colour = ApplyShadowsAndHighlights(colour, maskData[i].shadows, maskData[i].highlights);
 		colour = ApplyColourTempTint(colour, maskData[i].colTemp, maskData[i].colTint);
 		colour = pow(colour, vec3(1.0 / u_Gamma));
+    }
+
+    for (int i = 0; i < u_NumMasks; i++)
+    {
+        if (maskData[i].viewMask > 0.5)
+        {
+			float maskFac = 1.0;
+
+            if (maskData[i].maskType == 1)
+            {
+                vec3 colourMask = vec3(maskData[i].colourMask[0], maskData[i].colourMask[1], maskData[i].colourMask[2]);
+
+			    maskFac = ColourMaskFac(imageColour.rgb, colourMask, maskData[i].colourMaskThreshold);
+            }
+
+            colour = vec3(maskFac);
+        }
     }
 
     FragColor = vec4(colour, imageColour.a);

@@ -23,6 +23,9 @@ public:
 	App();
 	void Mainloop();
 	int windowWidth, windowHeight;
+	void RenderUI();
+	void OpenFolderContents(const std::string& folderPath);
+	void OpenFile(const std::string& filePath);
 	~App();
 
 private:
@@ -42,7 +45,4 @@ private:
 	int smallWindowWidth, smallWindowHeight;
 	void InitWindow();
 	void InitImGui();
-	void RenderUI();
-	void OpenFolderContents(const std::string& folderPath);
-	void OpenFile(const std::string& filePath);
 };

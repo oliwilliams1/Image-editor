@@ -243,6 +243,37 @@ void Editor::RenderUI() {
 					}
 					ImGui::EndTabItem();
 
+					if (currentImage->masks[i].maskType != SABLE_NO_MASK)
+					{
+						ShowFloatAsCheckbox(&currentImage->masks[i].editData.viewMask, "Preview mask", true);
+					}
+
+					static const char* maskTypes[] = { "Choose a mask type", "Colour", "Luminance" };
+
+					ImGui::Text("Mask Type");
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth(-FLT_MIN);
+					if (ImGui::Combo("Mask Type", &currentImage->masks[i].maskType, maskTypes, IM_ARRAYSIZE(maskTypes)))
+					{
+						needSSBOUpdate = true;
+					}
+
+					if (currentImage->masks[i].maskType == SABLE_COLOUR_MASK)
+					{
+						if (ImGui::ColorPicker3("Mask Colour", &currentImage->masks[i].editData.colourMask.x))
+						{
+							needSSBOUpdate = true;
+						}
+						ImGuiFloatSlider("Colour mask threshold", &currentImage->masks[i].editData.colourMaskThreshold, 0.0f, 1.0f, 0.05f, true);
+					}
+
+					if (currentImage->masks[i].maskType == SABLE_LUMINANCE_MASK)
+					{
+						ImGuiFloatSlider("Luminance mask lower", &currentImage->masks[i].editData.luminanceMaskLower,  0.0f, 1.0f, 0.05f, true);
+						ImGuiFloatSlider("Luminance mask mid",   &currentImage->masks[i].editData.luminanceMaskMiddle, 0.0f, 1.0f, 0.05f, true);
+						ImGuiFloatSlider("Luminance mask upper", &currentImage->masks[i].editData.luminanceMaskUpper , 0.0f, 1.0f, 0.05f, true);
+					}
+
 					// Adjustments
 					ImGui::SeparatorText("Adjustments");
 					ImGuiFloatSlider("Exposure", &currentImage->masks[i].editData.exposure, -5.0f, 5.0f, 0.1f, true);
@@ -300,6 +331,11 @@ void Editor::UpdateUBO()
 
 void Editor::UpdateMaskSSBO()
 {
+	for (int i = 0; i < currentImage->masks.size(); i++)
+	{
+		currentImage->masks[i].editData.maskType = currentImage->masks[i].maskType;
+	}
+
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, maskSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaskEditData) * currentImage->masks.size(), nullptr, GL_DYNAMIC_DRAW);
 
