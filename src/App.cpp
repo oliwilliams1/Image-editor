@@ -3,13 +3,11 @@
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
 static double offsetX, offsetY;
-static int needsRender = 20;
 static bool hyprland = false;
 static App* appInstance;
 
 static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) 
 {
-	needsRender = 20;
 	if (button == GLFW_MOUSE_BUTTON_LEFT) 
 	{
 		if (action == GLFW_PRESS) 
@@ -29,7 +27,6 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
 
 static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) 
 {
-	needsRender = 20;
 	if (dragging) 
 	{
 		int width, height;
@@ -50,20 +47,10 @@ static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 	}
 }
 
-static void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	needsRender = 20;
-}
-
 static void resizeCallback(GLFWwindow* window, int width, int height) 
 {
     appInstance->windowWidth = width;
 	appInstance->windowHeight = height;
-}
-
-static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	needsRender = 20;
 }
 
 App::App() 
@@ -125,8 +112,6 @@ void App::InitWindow()
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, cursorPosCallback);
 	glfwSetFramebufferSizeCallback(window, resizeCallback);
-	glfwSetKeyCallback(window, keyboardCallback);
-	glfwSetScrollCallback(window, scrollCallback);
 	
 	GLenum err = glewInit();
 	if (err != GLEW_OK) 
@@ -163,7 +148,6 @@ void App::Mainloop()
 			editor.SetImage(image);
 			editor.Render();
 
-			needsRender = 2; // 2 buffers
 		}
 
 		if (imageSaveQueue.size() != 0)
@@ -180,7 +164,6 @@ void App::Mainloop()
 			selectedImageIndex = -1;
 			editor.SetImage(nullptr);
 
-			needsRender = 2; // 2 buffers
 		}
 		else
 		{
@@ -189,17 +172,11 @@ void App::Mainloop()
 
 		glfwPollEvents();
 
-		if (needsRender > 0)
-		{
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if (selectedImageIndex != -1) editor.Render();
+		if (selectedImageIndex != -1) editor.Render();
 
-			RenderUI();
-
-			// Decrement amnt of buffers to render, if user changes something, this will increase
-			needsRender--;
-		}
+		RenderUI();
 
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR)
@@ -207,14 +184,7 @@ void App::Mainloop()
 			std::cout << "OpenGL error: " << error << std::endl;
 		}
 
-		if (needsRender != 0)
-		{
-			glfwSwapBuffers(window);
-		}
-		else
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Doesnt hog resources, 1/20th a second, plenty enough for glfw poll events
-		}
+		glfwSwapBuffers(window);
 	}
 }
 
