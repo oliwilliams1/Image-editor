@@ -1,4 +1,4 @@
-#version 460 core
+#version 410 core
 
 layout (location = 0) out vec4 FragColor;
 
@@ -64,10 +64,12 @@ struct MaskData
     float viewMask;
 };
 
+/*
 layout(std430, binding = 1) buffer MaskDataBuffer
 {
     MaskData maskData[];
 };
+*/
 
 // https://github.com/kajott/GIPS/blob/main/shaders/Color/Exposure.glsl
 vec3 ApplyExposure(vec3 inColour, float ev, float tonemapping)
@@ -207,6 +209,7 @@ void main()
 
     colour = clamp(colour, 0.0, 1.0);
 
+    /*
     for (int i = 0; i < u_NumMasks; i++) 
     {
         float maskFac = 1.0;
@@ -270,6 +273,6 @@ void main()
             colour = vec3(maskFac);
         }
     }
-
+    */
     FragColor = vec4(colour, imageColour.a);
 }

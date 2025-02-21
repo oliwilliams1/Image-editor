@@ -27,3 +27,4 @@ SableImageEditor
 
 # Git
 .git/
+.vscode/

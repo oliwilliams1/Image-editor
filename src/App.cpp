@@ -79,7 +79,12 @@ void App::InitWindow()
 		return;
 	}
 
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
 	// Create a window with OpenGL
 	window = glfwCreateWindow(windowWidth, windowHeight, "Planet Renderer", nullptr, nullptr);
@@ -105,14 +110,14 @@ void App::InitWindow()
 	// Set the window position to the center
 	glfwSetWindowPos(window, posX, posY);
 
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-
 	glfwMakeContextCurrent(window);
 
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 	glfwSetCursorPosCallback(window, cursorPosCallback);
 	glfwSetFramebufferSizeCallback(window, resizeCallback);
 	
+	glewExperimental = GL_TRUE;
+
 	GLenum err = glewInit();
 	if (err != GLEW_OK) 
 	{

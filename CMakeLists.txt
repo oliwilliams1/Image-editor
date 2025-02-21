@@ -25,6 +25,7 @@ add_library(glew ${GLEW_SOURCE})
 
 # GLFW
 add_subdirectory(dependencies/glfw)
+include_directories("dependencies/glfw/include")
 
 # ImGui
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/dependencies/imgui")
