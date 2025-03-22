@@ -40,6 +40,8 @@ struct ImageEditData
 	float highlights = 0.0f; // [-1, 1]
 
 	float contrast = 0.5f;
+
+	float angle = 0.0f; // [-180, 180] degrees
 };
 
 struct MaskEditData

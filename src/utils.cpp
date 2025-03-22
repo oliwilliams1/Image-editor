@@ -5,6 +5,8 @@
 #include "stb_image.h"
 
 void SetupImGuiStyle() {
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
 	// Hazy Dark style by kaitabuchi314 from ImThemes
 	ImGuiStyle& style = ImGui::GetStyle();
 

@@ -79,10 +79,8 @@ void App::InitWindow()
 		return;
 	}
 
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
 	// Create a window with OpenGL
-	window = glfwCreateWindow(windowWidth, windowHeight, "Planet Renderer", nullptr, nullptr);
+	window = glfwCreateWindow(windowWidth, windowHeight, "Sable Image Editor", nullptr, nullptr);
 	if (!window) 
 	{
 		std::cout << stderr << "Failed to create GLFW window" << std::endl;

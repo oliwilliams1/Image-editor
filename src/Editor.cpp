@@ -183,6 +183,7 @@ void Editor::RenderUI() {
 		ImGui::SeparatorText("Export");
 		if (ImGui::Button("Save")) SaveImage(currentImage);
 		ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
+		ImGuiFloatSlider("Angle", &currentImage->editData.angle, -180.0f, 180.0f, 0.1f);
 
 		// Image Data Section
 		ImGui::SeparatorText("Image Data");
