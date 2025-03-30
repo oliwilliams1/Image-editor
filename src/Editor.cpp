@@ -15,6 +15,7 @@ void Editor::Initialize() {
 	shader = new Shader("shaders/editor.vert", "shaders/editor.frag");
 	
 	u_InputImageLoc = glGetUniformLocation(shader->shaderProgram, "u_InputImage");
+	u_LogoImageLoc = glGetUniformLocation(shader->shaderProgram, "u_LogoImage");
 
 	shader->use();
 }
@@ -96,10 +97,21 @@ void Editor::Render()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, currentImage->textureInID);
 
+	if (logoImageLoc != -1)
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, logoImageLoc);
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shader->use();
 	glUniform1i(u_InputImageLoc, 1);
+
+	if (logoImageLoc != -1)
+	{
+		glUniform1i(u_LogoImageLoc, 2);
+	}
 
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -183,7 +195,6 @@ void Editor::RenderUI() {
 		ImGui::SeparatorText("Export");
 		if (ImGui::Button("Save")) SaveImage(currentImage);
 		ImGui::SliderInt("JPG Quality", &outputJpgQuality, 0, 100);
-		ImGuiFloatSlider("Angle", &currentImage->editData.angle, -180.0f, 180.0f, 0.1f);
 
 		// Image Data Section
 		ImGui::SeparatorText("Image Data");
@@ -214,6 +225,10 @@ void Editor::RenderUI() {
 		ImVec4 imAvgColour = ImVec4(avgColour.x, avgColour.y, avgColour.z, 1.0f);
 		ImGui::ColorButton("Average Colour", imAvgColour, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions);
 		ImGui::EndTabItem();
+
+		// Image at bottom of 360 image
+		ShowFloatAsCheckbox(&currentImage->editData.logo360, "Place Logo at bottom");
+		ImGuiFloatSlider("Logo Radius", &currentImage->editData.logo360Radius, 0.0f, 1.0f, 0.05f);
 	}
 
 	if (ImGui::BeginTabItem("Masks"))

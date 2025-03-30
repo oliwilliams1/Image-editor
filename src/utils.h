@@ -41,7 +41,8 @@ struct ImageEditData
 
 	float contrast = 0.5f;
 
-	float angle = 0.0f; // [-180, 180] degrees
+	float logo360 = 0;
+	float logo360Radius = 0.2f;
 };
 
 struct MaskEditData

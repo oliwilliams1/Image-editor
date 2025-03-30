@@ -26,10 +26,13 @@ public:
 	void RenderUI();
 	void OpenFolderContents(const std::string& folderPath);
 	void OpenFile(const std::string& filePath);
+	void SetLogoImage(const std::string& path);
 	~App();
 
 private:
 	Editor editor;
+
+	GLuint logoTextureID;
 
 	GLFWwindow* window;
 	std::vector<std::string> imagePathQueue;

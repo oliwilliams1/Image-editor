@@ -19,6 +19,8 @@ public:
 	void SaveImage(std::shared_ptr<Image> image);
 	std::shared_ptr<Image> currentImage;
 
+	GLuint logoImageLoc = -1;
+
 private:
 	void SetupQuad();
 	Shader* shader;
@@ -41,4 +43,6 @@ private:
 	void UpdateMaskSSBO();
 	GLuint maskSSBO;
 	bool needSSBOUpdate = false;
+
+	GLuint u_LogoImageLoc;
 };

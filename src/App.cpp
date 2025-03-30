@@ -1,4 +1,5 @@
 ﻿#include "App.h"
+#include <stb_image.h>
 
 // static, only this translation unit, cant be bothered to make this code somewhere else
 static bool dragging = false;
@@ -233,6 +234,39 @@ void App::OpenFile(const std::string& filePath)
 	}
 
 	std::cerr << "Could not open file: " << filePath << ". Unsupported file type" << std::endl;
+}
+
+void App::SetLogoImage(const std::string& path)
+{
+	int width, height, channels;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+	if (data == nullptr)
+	{
+		std::cout << "STB failed to load image: " << path << std::endl;
+		exit(1);
+		return;
+	}
+
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(data);
+
+	logoTextureID = textureID;
+
+	editor.logoImageLoc = logoTextureID;
+	std::cout << "Loaded logo image: " << path << std::endl;
 }
 
 void App::RenderUI()
